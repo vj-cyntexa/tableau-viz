@@ -25,7 +25,7 @@
 
 ## Progress Tracker
 
-- [ ] Task 1 — Folder and TREX manifests
+- [x] Task 1 — Folder and TREX manifests
 - [ ] Task 2 — HTML shell (`index.html`)
 - [ ] Task 3 — D3 chart logic (`chart.js`)
 - [ ] Task 4 — Standalone test page (`test.html`)
@@ -40,7 +40,7 @@
 - Create: `extensions/bar-line-combo/bar-line-combo.trex`
 - Create: `extensions/bar-line-combo/bar-line-combo-local.trex`
 
-- [ ] **Step 1.1: Create production manifest**
+- [x] **Step 1.1: Create production manifest**
 
 Create `extensions/bar-line-combo/bar-line-combo.trex`:
 
@@ -88,7 +88,7 @@ Create `extensions/bar-line-combo/bar-line-combo.trex`:
 </manifest>
 ```
 
-- [ ] **Step 1.2: Create local dev manifest**
+- [x] **Step 1.2: Create local dev manifest**
 
 Create `extensions/bar-line-combo/bar-line-combo-local.trex` — identical to above except `id` and `<url>`:
 
@@ -136,7 +136,7 @@ Create `extensions/bar-line-combo/bar-line-combo-local.trex` — identical to ab
 </manifest>
 ```
 
-- [ ] **Step 1.3: Commit**
+- [x] **Step 1.3: Commit**
 
 ```bash
 git add extensions/bar-line-combo/
