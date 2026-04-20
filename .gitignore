@@ -1,0 +1,26 @@
+# Credentials / secrets
+.mcp.json
+config/datasources.yml
+.env
+*.env
+
+# Data files
+data/raw/
+data/extracts/*.hyper
+
+# Generated output
+workbooks/output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
