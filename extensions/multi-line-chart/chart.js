@@ -28,9 +28,11 @@ async function fetchData(worksheet) {
   const reader = await worksheet.getSummaryDataReaderAsync(undefined, {
     ignoreSelection: true,
   });
-  const table = await reader.getAllPagesAsync();
-  await reader.releaseAsync();
-  return table;
+  try {
+    return await reader.getAllPagesAsync();
+  } finally {
+    await reader.releaseAsync();
+  }
 }
 
 function parseTableauData(dataTable, vizSpec) {
