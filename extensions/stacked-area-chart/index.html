@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stacked Area Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://extensions.tableau.com/lib/tableau.extensions.2.latest.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    #chart {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* ── Toolbar ────────────────────────────────────────────────────────────── */
+    #toolbar {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 200;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+      font-size: 12px;
+      min-width: 200px;
+    }
+
+    .tb-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tb-label {
+      color: #555;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 2px;
+    }
+
+    .mode-btn {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      color: #444;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .mode-btn.active {
+      background: #4e79a7;
+      color: #fff;
+      border-color: #4e79a7;
+    }
+
+    .toggle-check {
+      cursor: pointer;
+      accent-color: #4e79a7;
+    }
+
+    /* ── Error banner ────────────────────────────────────────────────────────── */
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 300;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+
+    /* ── D3 chart styles ────────────────────────────────────────────────────── */
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+
+    .area-path { cursor: crosshair; }
+
+    .crosshair {
+      stroke: #999;
+      stroke-width: 1px;
+      stroke-dasharray: 4 3;
+      pointer-events: none;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.8;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+      max-width: 230px;
+      z-index: 400;
+    }
+
+    .tooltip .tt-date {
+      font-weight: 600;
+      font-size: 13px;
+      color: #222;
+      margin-bottom: 4px;
+    }
+
+    .legend text { font-size: 12px; fill: #444; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <!-- Stack mode -->
+    <div class="tb-row">
+      <span class="tb-label">Mode:</span>
+      <div class="btn-group">
+        <button class="mode-btn active" data-stack="stacked">Stacked</button>
+        <button class="mode-btn" data-stack="normalized">Normalized</button>
+        <button class="mode-btn" data-stack="lines">Lines</button>
+      </div>
+    </div>
+    <!-- Area fill toggle -->
+    <div class="tb-row">
+      <label class="tb-label" for="fill-toggle">Area fill:</label>
+      <input type="checkbox" id="fill-toggle" class="toggle-check" checked>
+    </div>
+    <!-- Sort order -->
+    <div class="tb-row">
+      <span class="tb-label">Sort:</span>
+      <div class="btn-group">
+        <button class="mode-btn active" data-sort="total">By Total</button>
+        <button class="mode-btn" data-sort="alpha">Alphabetical</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="chart"></div>
+  <div id="error"></div>
+  <script src="chart.js"></script>
+</body>
+</html>

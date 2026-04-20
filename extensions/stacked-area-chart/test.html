@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Stacked Area Chart — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+    }
+    h2 {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+    #chart-wrapper {
+      width: 100%;
+      height: calc(100vh - 60px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    #chart { width: 100%; height: 100%; position: relative; }
+    #error { display: none; }
+    #error:not(:empty) {
+      display: block;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    /* Toolbar mirrors index.html */
+    #toolbar {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 200;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      font-size: 12px;
+      min-width: 200px;
+    }
+    .tb-row { display: flex; align-items: center; gap: 8px; }
+    .tb-label { color: #555; white-space: nowrap; flex-shrink: 0; }
+    .btn-group { display: flex; gap: 2px; }
+    .mode-btn {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      color: #444;
+      transition: background 0.12s, color 0.12s;
+    }
+    .mode-btn.active { background: #4e79a7; color: #fff; border-color: #4e79a7; }
+    .toggle-check { cursor: pointer; accent-color: #4e79a7; }
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+    .area-path { cursor: crosshair; }
+    .crosshair { stroke: #999; stroke-width: 1px; stroke-dasharray: 4 3; pointer-events: none; }
+    .tooltip {
+      position: absolute;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.8;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+      max-width: 230px;
+      z-index: 400;
+    }
+    .tooltip .tt-date { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+    .legend text { font-size: 12px; fill: #444; }
+  </style>
+</head>
+<body>
+  <h2>Stacked Area Chart — Browser Test (no Tableau required)</h2>
+
+  <!-- Toolbar must be in DOM before chart.js runs -->
+  <div id="toolbar">
+    <div class="tb-row">
+      <span class="tb-label">Mode:</span>
+      <div class="btn-group">
+        <button class="mode-btn active" data-stack="stacked">Stacked</button>
+        <button class="mode-btn" data-stack="normalized">Normalized</button>
+        <button class="mode-btn" data-stack="lines">Lines</button>
+      </div>
+    </div>
+    <div class="tb-row">
+      <label class="tb-label" for="fill-toggle">Area fill:</label>
+      <input type="checkbox" id="fill-toggle" class="toggle-check" checked>
+    </div>
+    <div class="tb-row">
+      <span class="tb-label">Sort:</span>
+      <div class="btn-group">
+        <button class="mode-btn active" data-sort="total">By Total</button>
+        <button class="mode-btn" data-sort="alpha">Alphabetical</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+
+  <script>
+  (function () {
+    // ── 96 hardcoded rows: 24 months x 4 tiers ────────────────────────────────
+    // Months: Jan 2022 – Dec 2023 (24 entries)
+    // Tiers: Bronze (declining), Silver, Gold, Platinum (growing)
+
+    const MONTHS = [
+      'Jan 2022','Feb 2022','Mar 2022','Apr 2022','May 2022','Jun 2022',
+      'Jul 2022','Aug 2022','Sep 2022','Oct 2022','Nov 2022','Dec 2022',
+      'Jan 2023','Feb 2023','Mar 2023','Apr 2023','May 2023','Jun 2023',
+      'Jul 2023','Aug 2023','Sep 2023','Oct 2023','Nov 2023','Dec 2023',
+    ];
+
+    const BRONZE_VALUES   = [8200,7900,7600,7300,7000,6800,6600,6400,6200,6000,5800,5700,5500,5300,5100,4900,4700,4500,4300,4100,3900,3700,3500,3300];
+    const SILVER_VALUES   = [3100,3300,3500,3700,3900,4100,4300,4500,4700,4900,5100,5300,5500,5700,5900,6100,6300,6500,6700,6900,7100,7300,7500,7700];
+    const GOLD_VALUES     = [1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,3400,3500];
+    const PLATINUM_VALUES = [200,220,240,260,280,300,330,360,390,420,450,480,510,540,570,600,640,680,720,760,800,850,900,950];
+
+    const columns = [
+      { fieldName: 'Month',   index: 0, dataType: 'string' },
+      { fieldName: 'Tier',    index: 1, dataType: 'string' },
+      { fieldName: 'Members', index: 2, dataType: 'float'  },
+    ];
+
+    // Build 96 rows: for each month, one row per tier
+    const data = [];
+    MONTHS.forEach((month, mi) => {
+      data.push([{ value: month }, { value: 'Bronze'   }, { value: String(BRONZE_VALUES[mi])   }]);
+      data.push([{ value: month }, { value: 'Silver'   }, { value: String(SILVER_VALUES[mi])   }]);
+      data.push([{ value: month }, { value: 'Gold'     }, { value: String(GOLD_VALUES[mi])     }]);
+      data.push([{ value: month }, { value: 'Platinum' }, { value: String(PLATINUM_VALUES[mi]) }]);
+    });
+
+    const dataTable = { columns, data };
+
+    const vizSpec = {
+      marksSpecificationCollection: [{
+        encodingCollection: [
+          { id: 'date',    fieldCollection: [{ fieldName: 'Month'   }] },
+          { id: 'segment', fieldCollection: [{ fieldName: 'Tier'    }] },
+          { id: 'value',   fieldCollection: [{ fieldName: 'Members' }] },
+        ],
+      }],
+    };
+
+    window.tableau = {
+      TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+      extensions: {
+        initializeAsync() { return Promise.resolve(); },
+        worksheetContent: {
+          worksheet: {
+            addEventListener() {},
+            getVisualSpecificationAsync() { return Promise.resolve(vizSpec); },
+            getSummaryDataReaderAsync() {
+              return Promise.resolve({
+                getAllPagesAsync() { return Promise.resolve(dataTable); },
+                releaseAsync()    { return Promise.resolve(); },
+              });
+            },
+          },
+        },
+      },
+    };
+  })();
+  </script>
+
+  <!-- chart.js must load after window.tableau is defined -->
+  <script src="chart.js"></script>
+</body>
+</html>
