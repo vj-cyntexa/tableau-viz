@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.relationshiptable.local" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Relationship matrix table with heatmap coloring built with D3.js (local dev)</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>http://localhost:8080/extensions/relationship-table/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="row">
+      <display-name resource-id="row_label">Row Dimension</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="column">
+      <display-name resource-id="col_label">Column Dimension</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="value">
+      <display-name resource-id="val_label">Value (Measure)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Relationship Table (local)</text></resource>
+    <resource id="row_label"><text locale="en_US">Row Dimension</text></resource>
+    <resource id="col_label"><text locale="en_US">Column Dimension</text></resource>
+    <resource id="val_label"><text locale="en_US">Value (Measure)</text></resource>
+  </resources>
+</manifest>
