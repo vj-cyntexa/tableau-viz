@@ -33,6 +33,64 @@
 
     #toolbar:empty { display: none; }
 
+    #view-bar {
+      display: flex;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      flex-shrink: 0;
+    }
+    .view-btn {
+      padding: 3px 12px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .view-btn.active {
+      background: #1f77b4;
+      color: #fff;
+      border-color: #1f77b4;
+      font-weight: 600;
+    }
+    #list-view {
+      display: none;
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    #list-view table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+    #list-view th {
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      padding: 7px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+    }
+    #list-view td {
+      border: 1px solid #e0e0e0;
+      padding: 7px 12px;
+    }
+    #list-view td.swatch {
+      width: 14px;
+    }
+    #list-view td.count {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    #list-view td.pct {
+      text-align: right;
+      color: #666;
+      font-variant-numeric: tabular-nums;
+    }
+
     #toolbar label {
       display: flex;
       align-items: center;
@@ -166,8 +224,13 @@
   </style>
 </head>
 <body>
+  <div id="view-bar">
+    <button class="view-btn active" data-view="diagram">Diagram</button>
+    <button class="view-btn" data-view="list">List</button>
+  </div>
   <div id="toolbar"></div>
   <div id="panels"></div>
+  <div id="list-view"></div>
   <div class="tooltip" id="tooltip"></div>
   <div id="error"></div>
   <script src="chart.js"></script>

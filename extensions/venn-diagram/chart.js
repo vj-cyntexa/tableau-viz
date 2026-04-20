@@ -4,6 +4,7 @@ const PALETTE = d3.schemeTableau10;
 
 let cachedGroups = null;
 const colorState = new Map();
+let currentView = 'diagram';
 
 let resizeTimer = null;
 window.addEventListener('resize', () => {
@@ -13,6 +14,18 @@ window.addEventListener('resize', () => {
   }, 150);
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentView = btn.dataset.view;
+      document.querySelectorAll('.view-btn').forEach(b =>
+        b.classList.toggle('active', b === btn)
+      );
+      applyView();
+    });
+  });
+});
+
 tableau.extensions.initializeAsync().then(() => {
   const ws = tableau.extensions.worksheetContent.worksheet;
   ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, () => render(ws));
@@ -20,6 +33,70 @@ tableau.extensions.initializeAsync().then(() => {
 }).catch(err => {
   setError(err.message || String(err));
 });
+
+function applyView() {
+  const panels = document.getElementById('panels');
+  const toolbar = document.getElementById('toolbar');
+  const listView = document.getElementById('list-view');
+  if (currentView === 'list') {
+    if (panels) panels.style.display = 'none';
+    if (toolbar) toolbar.style.display = 'none';
+    if (listView) { listView.style.display = 'block'; renderListView(); }
+  } else {
+    if (panels) panels.style.display = '';
+    if (toolbar) toolbar.style.display = '';
+    if (listView) listView.style.display = 'none';
+  }
+}
+
+function renderListView() {
+  const listView = document.getElementById('list-view');
+  if (!listView || !cachedGroups) return;
+  listView.innerHTML = '';
+
+  for (const [groupName, rows] of cachedGroups) {
+    if (groupName !== '__all__') {
+      const h = document.createElement('h3');
+      h.style.cssText = 'font-size:13px;font-weight:600;color:#333;margin-bottom:8px;';
+      h.textContent = groupName;
+      listView.appendChild(h);
+    }
+
+    const total = d3.sum(rows, r => r.size);
+    const sorted = [...rows].sort((a, b) => b.size - a.size);
+
+    const table = document.createElement('table');
+    table.innerHTML = `<thead><tr>
+      <th style="width:14px"></th>
+      <th>Region</th>
+      <th style="text-align:right">Members</th>
+      <th style="text-align:right">% of Total</th>
+    </tr></thead>`;
+    const tbody = document.createElement('tbody');
+
+    for (const row of sorted) {
+      const tr = document.createElement('tr');
+      const pct = total > 0 ? (row.size / total * 100).toFixed(1) + '%' : '—';
+      const isSingleton = row.sets.length === 1;
+      const swatchColor = isSingleton
+        ? (colorState.get(row.sets[0]) || '#888')
+        : '#ccc';
+      tr.innerHTML = `
+        <td class="swatch"><div style="width:12px;height:12px;border-radius:2px;background:${swatchColor}"></div></td>
+        <td>${row.label || row.sets.join(' ∩ ')}</td>
+        <td class="count">${d3.format(',')(row.size)}</td>
+        <td class="pct">${pct}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    const wrap = document.createElement('div');
+    wrap.style.marginBottom = '20px';
+    wrap.appendChild(table);
+    listView.appendChild(wrap);
+  }
+}
 
 async function render(worksheet) {
   clearError();
@@ -172,6 +249,8 @@ function drawAll(groups) {
 
     renderPanel(groupName, vennData, chartEl, colorMap);
   }
+
+  applyView();
 }
 
 function renderPanel(groupName, vennData, container, colorMap) {
@@ -211,36 +290,51 @@ function renderPanel(groupName, vennData, container, colorMap) {
         .style('stroke', 'none');
     });
 
-  vennGroup.selectAll('g.venn-circle, g.venn-intersection')
+  // Singleton circles: name + count
+  vennGroup.selectAll('g.venn-circle')
     .each(function (d) {
       const g = d3.select(this);
       g.select('text').remove();
-
       const pathNode = g.select('path').node();
       if (!pathNode) return;
       const bbox = pathNode.getBBox();
       const cx = bbox.x + bbox.width / 2;
       const cy = bbox.y + bbox.height / 2;
-
-      const displayName = d.label || d.sets.join(' ∩ ');
+      const displayName = d.label || d.sets[0];
       const count = d3.format(',')(d.size);
-
       const text = g.append('text')
-        .attr('x', cx)
-        .attr('y', cy - 8)
+        .attr('x', cx).attr('y', cy - 8)
         .attr('text-anchor', 'middle')
         .style('pointer-events', 'none');
-
       text.append('tspan')
         .attr('class', 'venn-label-name')
-        .attr('x', cx)
-        .attr('dy', '0')
+        .attr('x', cx).attr('dy', '0')
         .text(displayName);
-
       text.append('tspan')
         .attr('class', 'venn-label-count')
-        .attr('x', cx)
-        .attr('dy', '1.5em')
+        .attr('x', cx).attr('dy', '1.5em')
+        .text(count);
+    });
+
+  // Intersection regions: count only (name in tooltip)
+  vennGroup.selectAll('g.venn-intersection')
+    .each(function (d) {
+      const g = d3.select(this);
+      g.select('text').remove();
+      const pathNode = g.select('path').node();
+      if (!pathNode) return;
+      const bbox = pathNode.getBBox();
+      if (bbox.height < 22 || bbox.width < 30) return; // too small — tooltip only
+      const cx = bbox.x + bbox.width / 2;
+      const cy = bbox.y + bbox.height / 2;
+      const count = d3.format(',')(d.size);
+      g.append('text')
+        .attr('x', cx).attr('y', cy)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'venn-label-count')
+        .style('font-size', '11px')
+        .style('pointer-events', 'none')
         .text(count);
     });
 
