@@ -29,8 +29,8 @@
 - [x] Task 2 — HTML Shell (`index.html`)
 - [x] Task 3 — Chart Logic (`chart.js`)
 - [x] Task 4 — Test Page (`test.html`)
-- [ ] Task 5 — README
-- [ ] Task 6 — Push and verify
+- [x] Task 5 — README
+- [x] Task 6 — Push and verify
 
 ---
 
@@ -1058,7 +1058,7 @@ git commit -m "feat: add browser test page for relationship-table with mock Tabl
 **Files:**
 - Create: `extensions/relationship-table/README.md`
 
-- [ ] **Step 5.1: Write README.md**
+- [x] **Step 5.1: Write README.md**
 
 Create `extensions/relationship-table/README.md`:
 
@@ -1120,7 +1120,7 @@ open http://localhost:8080/extensions/relationship-table/test.html
 Cyntexa — vishwajeet@cyntexa.com
 ```
 
-- [ ] **Step 5.2: Commit**
+- [x] **Step 5.2: Commit**
 
 ```bash
 git add extensions/relationship-table/README.md
@@ -1131,13 +1131,13 @@ git commit -m "docs: add README for relationship-table extension"
 
 ## Task 6: Push and Verify
 
-- [ ] **Step 6.1: Push to remote**
+- [x] **Step 6.1: Push to remote**
 
 ```bash
 git pull --rebase origin master && git push origin master
 ```
 
-- [ ] **Step 6.2: Confirm GitHub Pages URL is live**
+- [x] **Step 6.2: Confirm GitHub Pages URL is live**
 
 Wait 60–90 seconds after pushing, then verify:
 
@@ -1147,7 +1147,7 @@ curl -sI "https://vj-cyntexa.github.io/tableau-viz/extensions/relationship-table
 
 Expected: `HTTP/2 200` (or `301` redirect to HTTPS). If you get `404`, wait another minute and retry.
 
-- [ ] **Step 6.3: Smoke-test in browser**
+- [x] **Step 6.3: Smoke-test in browser**
 
 Open: `https://vj-cyntexa.github.io/tableau-viz/extensions/relationship-table/test.html`
 
