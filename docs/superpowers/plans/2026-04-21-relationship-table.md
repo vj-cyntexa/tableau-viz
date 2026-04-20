@@ -26,7 +26,7 @@
 ## Progress Tracker
 
 - [x] Task 1 — TREX Manifests
-- [ ] Task 2 — HTML Shell (`index.html`)
+- [x] Task 2 — HTML Shell (`index.html`)
 - [ ] Task 3 — Chart Logic (`chart.js`)
 - [ ] Task 4 — Test Page (`test.html`)
 - [ ] Task 5 — README
@@ -138,7 +138,7 @@ git commit -m "feat: add .trex manifests for relationship-table viz extension"
 **Files:**
 - Create: `extensions/relationship-table/index.html`
 
-- [ ] **Step 2.1: Write index.html**
+- [x] **Step 2.1: Write index.html**
 
 Create `extensions/relationship-table/index.html`:
 
@@ -387,7 +387,7 @@ Create `extensions/relationship-table/index.html`:
 </html>
 ```
 
-- [ ] **Step 2.2: Commit**
+- [x] **Step 2.2: Commit**
 
 ```bash
 git add extensions/relationship-table/index.html
