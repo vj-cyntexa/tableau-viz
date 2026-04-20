@@ -132,8 +132,24 @@ function buildMatrix(dataTable, vizSpec) {
   if (!colTotalField || !(colTotalField in colIndex))
     throw new Error('Drag a measure onto the "Column Product Total Purchases" encoding slot.');
 
-  const ri  = colIndex[rowField];
-  const ci  = colIndex[colField];
+  const ri_default = colIndex[rowField];
+  const ci_default = colIndex[colField];
+
+  let ri = ri_default;
+  let ci = ci_default;
+
+  if (rowField === colField) {
+    // Two columns have the same fieldName (e.g. self-join in Tableau).
+    // Object.fromEntries only keeps the last — find both by scanning columns array.
+    const matchingIndices = dataTable.columns
+      .filter(c => c.fieldName === rowField)
+      .map(c => c.index);
+    if (matchingIndices.length >= 2) {
+      ri = matchingIndices[0];
+      ci = matchingIndices[1];
+    }
+  }
+
   const cni = colIndex[countField];
   const rti = colIndex[rowTotalField];
   const cti = colIndex[colTotalField];
