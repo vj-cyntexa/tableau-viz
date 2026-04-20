@@ -27,7 +27,7 @@
 
 - [x] Task 1 — Folder and TREX manifests
 - [x] Task 2 — HTML shell (`index.html`)
-- [ ] Task 3 — D3 chart logic (`chart.js`)
+- [x] Task 3 — D3 chart logic (`chart.js`)
 - [ ] Task 4 — Standalone test page (`test.html`)
 - [ ] Task 5 — README (`README.md`)
 - [ ] Task 6 — GitHub Pages, CLAUDE.md update, final push
@@ -298,7 +298,7 @@ git commit -m "feat: add html shell for bar-line-combo extension"
 - **Gridlines:** Rendered only from the left Y axis to avoid a double grid from dual axes.
 - **Crosshair tooltip:** An invisible overlay `<rect>` captures mousemove. Since `scaleBand` has no `.invert()`, the nearest band is computed as `Math.floor((mx / bandStep))`, clamped to `[0, bands.length - 1]`. A vertical crosshair line is drawn at the band center. The tooltip box shows: X label, bar total (or stacked breakdown), line value.
 
-- [ ] **Step 3.1: Write chart.js**
+- [x] **Step 3.1: Write chart.js**
 
 Create `extensions/bar-line-combo/chart.js`:
 
@@ -758,7 +758,7 @@ function clearError() {
 }
 ```
 
-- [ ] **Step 3.2: Commit**
+- [x] **Step 3.2: Commit**
 
 ```bash
 git add extensions/bar-line-combo/chart.js
