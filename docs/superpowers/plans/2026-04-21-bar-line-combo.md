@@ -26,7 +26,7 @@
 ## Progress Tracker
 
 - [x] Task 1 — Folder and TREX manifests
-- [ ] Task 2 — HTML shell (`index.html`)
+- [x] Task 2 — HTML shell (`index.html`)
 - [ ] Task 3 — D3 chart logic (`chart.js`)
 - [ ] Task 4 — Standalone test page (`test.html`)
 - [ ] Task 5 — README (`README.md`)
@@ -150,7 +150,7 @@ git commit -m "feat: add .trex manifests for bar-line-combo viz extension"
 **Files:**
 - Create: `extensions/bar-line-combo/index.html`
 
-- [ ] **Step 2.1: Write index.html**
+- [x] **Step 2.1: Write index.html**
 
 Create `extensions/bar-line-combo/index.html`:
 
@@ -271,11 +271,11 @@ Create `extensions/bar-line-combo/index.html`:
 </html>
 ```
 
-- [ ] **Step 2.2: Verify the file is valid HTML**
+- [x] **Step 2.2: Verify the file is valid HTML**
 
 Open `extensions/bar-line-combo/index.html` in a browser. You should see a blank white page with no console errors (the Tableau Extensions API will throw a benign init error outside Tableau — expected).
 
-- [ ] **Step 2.3: Commit**
+- [x] **Step 2.3: Commit**
 
 ```bash
 git add extensions/bar-line-combo/index.html
