@@ -15,7 +15,7 @@
 - [x] Task 2: index.html
 - [x] Task 3: chart.js
 - [x] Task 4: test.html
-- [ ] Task 5: README.md
+- [x] Task 5: README.md
 - [ ] Task 6: Push all
 
 ---
@@ -930,7 +930,7 @@ Create `extensions/donut-chart/test.html`:
 
 **File:** `extensions/donut-chart/README.md`
 
-- [ ] **Step 5.1: Create README.md**
+- [x] **Step 5.1: Create README.md**
 
 Create `extensions/donut-chart/README.md`:
 
