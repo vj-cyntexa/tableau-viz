@@ -8,6 +8,8 @@ const TRANSITION_MS = 300;
 let layout = 'stacked';       // 'stacked' | 'grouped' | 'pct'
 let orientation = 'vertical'; // 'vertical' | 'horizontal'
 let lastSeries = null;
+let showAvgLine = false;
+let avgLineColor = '#e74c3c';
 
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 tableau.extensions.initializeAsync().then(() => {
@@ -40,6 +42,19 @@ tableau.extensions.initializeAsync().then(() => {
       document.querySelectorAll('[data-orient]').forEach(b => b.classList.toggle('active', b === btn));
       drawChart(lastSeries);
     });
+  });
+
+  // Wire avg line controls
+  const avgToggle = document.getElementById('avg-toggle');
+  const avgColorPicker = document.getElementById('avg-color');
+
+  avgToggle.addEventListener('change', () => {
+    showAvgLine = avgToggle.checked;
+    if (lastSeries) drawChart(lastSeries);
+  });
+  avgColorPicker.addEventListener('input', () => {
+    avgLineColor = avgColorPicker.value;
+    if (showAvgLine && lastSeries) drawChart(lastSeries);
   });
 
   // Listen for data changes
@@ -363,6 +378,30 @@ function drawChart({ xKeys, colorKeys, wideData }) {
           hideTooltip();
         });
     });
+
+    // ── Average reference line ──────────────────────────────────────────────
+    if (showAvgLine && layout !== 'pct') {
+      const allValues = wideData.flatMap(d => colorKeys.map(ck => d[ck]));
+      const avg = d3.mean(allValues);
+      const yAvg = yScale(avg);
+
+      g.append('line')
+        .attr('class', 'avg-line')
+        .attr('x1', 0).attr('x2', w)
+        .attr('y1', yAvg).attr('y2', yAvg)
+        .attr('stroke', avgLineColor)
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '6 4')
+        .attr('opacity', 0.85);
+
+      g.append('text')
+        .attr('class', 'avg-label-text')
+        .attr('x', w + 4)
+        .attr('y', yAvg + 4)
+        .attr('fill', avgLineColor)
+        .attr('font-size', '11px')
+        .text(`Avg: ${d3.format(',.0f')(avg)}`);
+    }
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -463,6 +502,30 @@ function drawChart({ xKeys, colorKeys, wideData }) {
           hideTooltip();
         });
     });
+
+    // ── Average reference line ──────────────────────────────────────────────
+    if (showAvgLine) {
+      const allValues = wideData.flatMap(d => colorKeys.map(ck => d[ck]));
+      const avg = d3.mean(allValues);
+      const xAvg = xScale(avg);
+
+      g.append('line')
+        .attr('class', 'avg-line')
+        .attr('x1', xAvg).attr('x2', xAvg)
+        .attr('y1', 0).attr('y2', h)
+        .attr('stroke', avgLineColor)
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '6 4')
+        .attr('opacity', 0.85);
+
+      g.append('text')
+        .attr('class', 'avg-label-text')
+        .attr('x', xAvg + 4)
+        .attr('y', -6)
+        .attr('fill', avgLineColor)
+        .attr('font-size', '11px')
+        .text(`Avg: ${d3.format(',.0f')(avg)}`);
+    }
   }
 
   // ── Vertical helpers ──────────────────────────────────────────────────────

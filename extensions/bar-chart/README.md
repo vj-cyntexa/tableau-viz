@@ -27,6 +27,16 @@ This yields five effective combinations:
 
 All mode switches animate with a 300ms D3 transition.
 
+## Average Reference Line
+
+A dotted reference line can be overlaid on the chart at the mean Y value of all bars:
+
+- **Toggle** — use the "Avg line" checkbox in the toolbar to show/hide the line (default: off)
+- **Color** — the color picker next to the checkbox lets you choose the line color (default: `#e74c3c`)
+- **Label** — a small "Avg: {value}" label appears at the right end (vertical) or top (horizontal) of the line
+- **Scope** — the average is computed across all displayed raw values (all color groups × all x-categories)
+- **100% Stacked mode** — the average line is automatically hidden in 100% stacked mode, since values are normalized and a raw-value average would be misleading
+
 ## Encoding Slots
 
 | Slot | Type | Required | Description |
