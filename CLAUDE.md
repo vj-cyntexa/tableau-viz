@@ -99,6 +99,7 @@ Use these to inspect the live Tableau Cloud environment:
 | Production TREX | `extensions/multi-line-chart/multi-line-chart.trex` |
 | Local dev TREX | `extensions/multi-line-chart/multi-line-chart-local.trex` |
 | Test page | `https://vj-cyntexa.github.io/tableau-viz/extensions/multi-line-chart/test.html` |
+| README | `extensions/multi-line-chart/README.md` |
 
 **Encodings:**
 - `x` — Date dimension (1 field, required)
@@ -111,3 +112,5 @@ Use these to inspect the live Tableau Cloud environment:
 3. In Tableau Desktop: Marks card → Viz Extensions → Access Local → `multi-line-chart-local.trex`
 
 **To add a new extension:** copy the `multi-line-chart/` folder, update IDs in `.trex`, update the URL, and add it to this section.
+
+**Extension README convention:** Every extension folder must have a `README.md` documenting: live URLs, encoding slots, what is and isn't configurable from Tableau's UI, file descriptions, local dev steps, and Tableau Cloud allowlist instructions. When you modify an extension (new encodings, changed URLs, new files), update its `README.md` in the same commit.
