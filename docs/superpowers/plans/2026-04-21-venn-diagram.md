@@ -13,7 +13,7 @@
 ## Progress Tracker
 - [x] Task 1: TREX manifests
 - [x] Task 2: index.html
-- [ ] Task 3: chart.js
+- [x] Task 3: chart.js
 - [ ] Task 4: test.html
 - [ ] Task 5: README.md
 - [ ] Task 6: Push all
@@ -256,7 +256,7 @@ Create `extensions/venn-diagram/index.html`:
 
 **File:** `extensions/venn-diagram/chart.js`
 
-- [ ] **Step 3.1: Create chart.js with full Tableau API integration and venn.js rendering**
+- [x] **Step 3.1: Create chart.js with full Tableau API integration and venn.js rendering**
 
 Create `extensions/venn-diagram/chart.js`:
 
