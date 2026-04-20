@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RFM Scatter Plot — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 12px; }
+    #toolbar {
+      display: flex; align-items: center; gap: 12px; padding: 6px 12px;
+      background: #f8f8f8; border: 1px solid #e0e0e0; border-bottom: none;
+      border-radius: 8px 8px 0 0; flex-wrap: wrap;
+    }
+    #toolbar .toolbar-group { display: flex; align-items: center; gap: 5px; }
+    #toolbar label { font-size: 11px; color: #555; font-weight: 600; text-transform: uppercase; }
+    #toolbar button {
+      font-size: 11px; padding: 3px 9px; border: 1px solid #ccc;
+      border-radius: 4px; background: #fff; color: #333; cursor: pointer;
+    }
+    #toolbar button.active { background: #4e79a7; color: #fff; border-color: #4e79a7; }
+    #toolbar input[type="number"] { width: 64px; font-size: 11px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; }
+    #toolbar input[type="range"] { width: 80px; cursor: pointer; }
+    #toolbar .sep { width: 1px; height: 20px; background: #ddd; margin: 0 4px; }
+    #chart-wrapper {
+      width: 100%; height: calc(100vh - 120px);
+      background: #fff; border: 1px solid #ddd; border-radius: 0 0 8px 8px;
+      overflow: hidden; position: relative;
+    }
+    #chart { width: 100%; height: 100%; position: relative; }
+    #error {
+      display: none; position: fixed; bottom: 10px; left: 50%;
+      transform: translateX(-50%); background: #fff0f0; color: #c0392b;
+      border: 1px solid #f5c6c6; border-radius: 6px; padding: 8px 16px;
+      font-size: 13px; z-index: 100; max-width: 80vw; text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+    .quadrant-line { stroke: #aaa; stroke-dasharray: 5 4; stroke-width: 1; }
+    .quadrant-label { font-size: 10px; fill: #aaa; font-style: italic; }
+    .bubble { stroke: #fff; stroke-width: 1; opacity: 0.8; cursor: pointer; transition: opacity 0.15s; }
+    .bubble:hover { opacity: 1; stroke-width: 2; }
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+    .legend text { font-size: 11px; fill: #444; }
+    .tooltip {
+      position: absolute; background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd; border-radius: 6px; padding: 9px 13px;
+      font-size: 12px; line-height: 1.7; pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10); max-width: 240px; z-index: 50;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h2>RFM Scatter Plot — Browser Test (no Tableau required)</h2>
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <label>Quadrant Lines</label>
+      <button id="btn-quadrant" class="active">On</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Recency threshold</label>
+      <input type="number" id="input-rec-threshold" placeholder="auto" min="1" max="999">
+    </div>
+    <div class="toolbar-group">
+      <label>Frequency threshold</label>
+      <input type="number" id="input-freq-threshold" placeholder="auto" min="1" max="999">
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Bubble size</label>
+      <input type="range" id="slider-size" min="4" max="40" value="28">
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>X Axis (Recency)</label>
+      <button class="xdir-btn active" data-dir="recent-right">Recent = Right</button>
+      <button class="xdir-btn" data-dir="recent-left">Recent = Left</button>
+    </div>
+  </div>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    // 50 customers across 6 RFM segments with realistic loyalty analytics values
+    const SEGMENTS = [
+      { name: 'Champions',   count: 10, recencyRange: [10, 45],   freqRange: [30, 50], monRange: [2500, 5000] },
+      { name: 'Loyal',       count: 10, recencyRange: [15, 90],   freqRange: [15, 30], monRange: [1200, 3000] },
+      { name: 'At Risk',     count: 10, recencyRange: [120, 240], freqRange: [10, 25], monRange: [800, 2200]  },
+      { name: "Can't Lose",  count: 7,  recencyRange: [180, 300], freqRange: [20, 45], monRange: [1500, 4000] },
+      { name: 'Hibernating', count: 8,  recencyRange: [200, 340], freqRange: [2, 8],   monRange: [100, 600]   },
+      { name: 'Lost',        count: 5,  recencyRange: [300, 365], freqRange: [1, 5],   monRange: [50, 400]    },
+    ];
+
+    function rand(min, max) { return Math.round(min + Math.random() * (max - min)); }
+
+    const mockData = [];
+    let cid = 1;
+    SEGMENTS.forEach(seg => {
+      for (let i = 0; i < seg.count; i++) {
+        mockData.push({
+          recency:   rand(seg.recencyRange[0], seg.recencyRange[1]),
+          frequency: rand(seg.freqRange[0], seg.freqRange[1]),
+          monetary:  rand(seg.monRange[0], seg.monRange[1]),
+          segment:   seg.name,
+          label:     `Customer ${cid++}`,
+        });
+      }
+    });
+
+    const columns = [
+      { fieldName: 'Days Since Purchase', index: 0, dataType: 'float'  },
+      { fieldName: 'Purchase Count',      index: 1, dataType: 'float'  },
+      { fieldName: 'Total Spend',         index: 2, dataType: 'float'  },
+      { fieldName: 'RFM Segment',         index: 3, dataType: 'string' },
+      { fieldName: 'Customer Name',       index: 4, dataType: 'string' },
+    ];
+
+    const rows = mockData.map(d => [
+      { value: String(d.recency)   },
+      { value: String(d.frequency) },
+      { value: String(d.monetary)  },
+      { value: d.segment           },
+      { value: d.label             },
+    ]);
+
+    const dataTable = { columns, data: rows };
+    const vizSpec = {
+      marksSpecificationCollection: [{
+        encodingCollection: [
+          { id: 'recency',   fieldCollection: [{ fieldName: 'Days Since Purchase' }] },
+          { id: 'frequency', fieldCollection: [{ fieldName: 'Purchase Count'      }] },
+          { id: 'monetary',  fieldCollection: [{ fieldName: 'Total Spend'         }] },
+          { id: 'segment',   fieldCollection: [{ fieldName: 'RFM Segment'         }] },
+          { id: 'label',     fieldCollection: [{ fieldName: 'Customer Name'       }] },
+        ],
+      }],
+    };
+
+    window.tableau = {
+      TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+      extensions: {
+        initializeAsync() { return Promise.resolve(); },
+        worksheetContent: {
+          worksheet: {
+            addEventListener() {},
+            getVisualSpecificationAsync() { return Promise.resolve(vizSpec); },
+            getSummaryDataReaderAsync() {
+              return Promise.resolve({
+                getAllPagesAsync() { return Promise.resolve(dataTable); },
+                releaseAsync()    { return Promise.resolve(); },
+              });
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <script src="chart.js"></script>
+  <script>
+    document.getElementById('btn-quadrant').addEventListener('click', function () {
+      window.RFM_STATE.showQuadrants = !window.RFM_STATE.showQuadrants;
+      this.textContent = window.RFM_STATE.showQuadrants ? 'On' : 'Off';
+      this.classList.toggle('active', window.RFM_STATE.showQuadrants);
+      window.RFM_STATE.redraw();
+    });
+    document.getElementById('input-rec-threshold').addEventListener('change', function () {
+      window.RFM_STATE.recThreshold = this.value === '' ? null : Number(this.value);
+      window.RFM_STATE.redraw();
+    });
+    document.getElementById('input-freq-threshold').addEventListener('change', function () {
+      window.RFM_STATE.freqThreshold = this.value === '' ? null : Number(this.value);
+      window.RFM_STATE.redraw();
+    });
+    document.getElementById('slider-size').addEventListener('input', function () {
+      window.RFM_STATE.maxRadius = Number(this.value);
+      window.RFM_STATE.redraw();
+    });
+    document.querySelectorAll('.xdir-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.xdir-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.RFM_STATE.recentRight = btn.dataset.dir === 'recent-right';
+        window.RFM_STATE.redraw();
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bubble Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://extensions.tableau.com/lib/tableau.extensions.2.latest.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 12px;
+      background: #f8f8f8;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+
+    #toolbar label { color: #555; white-space: nowrap; }
+
+    #toolbar input[type="number"] {
+      width: 52px;
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    #toolbar input[type="text"] {
+      width: 110px;
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    #toolbar .sep { width: 1px; height: 18px; background: #ddd; }
+
+    .toggle-btn {
+      padding: 3px 9px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+      color: #444;
+    }
+    .toggle-btn.active {
+      background: #4e79a7;
+      color: #fff;
+      border-color: #4e79a7;
+    }
+
+    #chart {
+      width: 100vw;
+      position: relative;
+    }
+
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+      max-width: 220px;
+      display: none;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <label>Size min: <input type="number" id="sizeMin" value="6" min="2" max="30"></label>
+    <label>max: <input type="number" id="sizeMax" value="40" min="10" max="80"></label>
+    <div class="sep"></div>
+    <button class="toggle-btn active" id="btnLabels">Labels</button>
+    <button class="toggle-btn active" id="btnQuadrants">Quadrants</button>
+    <div class="sep"></div>
+    <label>X label: <input type="text" id="xLabel" value="X Axis"></label>
+    <label>Y label: <input type="text" id="yLabel" value="Y Axis"></label>
+  </div>
+  <div id="chart"></div>
+  <div id="error"></div>
+  <div class="tooltip" id="tooltip"></div>
+  <script src="chart.js"></script>
+</body>
+</html>
