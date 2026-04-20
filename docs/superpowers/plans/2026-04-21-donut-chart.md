@@ -16,7 +16,7 @@
 - [x] Task 3: chart.js
 - [x] Task 4: test.html
 - [x] Task 5: README.md
-- [ ] Task 6: Push all
+- [x] Task 6: Push all
 
 ---
 
@@ -987,14 +987,14 @@ Cyntexa · vishwajeet@cyntexa.com
 
 ## Task 6: Push all files
 
-- [ ] **Step 6.1: Stage and commit**
+- [x] **Step 6.1: Stage and commit**
 
 ```bash
 git add extensions/donut-chart/
 git commit -m "feat: donut-chart viz extension (standard, exploded, multi-ring)"
 ```
 
-- [ ] **Step 6.2: Push**
+- [x] **Step 6.2: Push**
 
 ```bash
 git pull --rebase origin master && git push origin master
