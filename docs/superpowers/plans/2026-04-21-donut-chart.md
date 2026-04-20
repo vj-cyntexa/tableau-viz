@@ -11,7 +11,7 @@
 ---
 
 ## Progress Tracker
-- [ ] Task 1: TREX manifests
+- [x] Task 1: TREX manifests
 - [ ] Task 2: index.html
 - [ ] Task 3: chart.js
 - [ ] Task 4: test.html
@@ -26,7 +26,7 @@
 - `extensions/donut-chart/donut-chart.trex`
 - `extensions/donut-chart/donut-chart-local.trex`
 
-- [ ] **Step 1.1: Create production manifest**
+- [x] **Step 1.1: Create production manifest**
 
 Create `extensions/donut-chart/donut-chart.trex`:
 
@@ -68,7 +68,7 @@ Create `extensions/donut-chart/donut-chart.trex`:
 </manifest>
 ```
 
-- [ ] **Step 1.2: Create local dev manifest**
+- [x] **Step 1.2: Create local dev manifest**
 
 Create `extensions/donut-chart/donut-chart-local.trex`:
 

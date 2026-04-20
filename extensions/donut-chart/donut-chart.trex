@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.donutchart" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Donut chart with standard, exploded, and multi-ring modes built with D3.js</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>https://vj-cyntexa.github.io/tableau-viz/extensions/donut-chart/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="category">
+      <display-name resource-id="category_label">Category</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="value">
+      <display-name resource-id="value_label">Value</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="inner-value">
+      <display-name resource-id="inner_value_label">Inner Value (Multi-Ring)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Donut Chart</text></resource>
+    <resource id="category_label"><text locale="en_US">Category</text></resource>
+    <resource id="value_label"><text locale="en_US">Value</text></resource>
+    <resource id="inner_value_label"><text locale="en_US">Inner Value (Multi-Ring)</text></resource>
+  </resources>
+</manifest>
