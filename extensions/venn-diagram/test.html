@@ -181,26 +181,18 @@
   <script>
     (function () {
       const columns = [
-        { fieldName: 'Programme',       index: 0, dataType: 'string'  },
-        { fieldName: 'Loyalty Segment', index: 1, dataType: 'string'  },
-        { fieldName: 'Customer Count',  index: 2, dataType: 'integer' },
+        { fieldName: 'Loyalty Segment', index: 0, dataType: 'string'  },
+        { fieldName: 'Customer Count',  index: 1, dataType: 'integer' },
       ];
 
       const rows = [
-        [{ value: 'Programme A' }, { value: 'Gold'                 }, { value: '600'  }],
-        [{ value: 'Programme A' }, { value: 'Silver'               }, { value: '950'  }],
-        [{ value: 'Programme A' }, { value: 'Platinum'             }, { value: '380'  }],
-        [{ value: 'Programme A' }, { value: 'Gold,Silver'          }, { value: '230'  }],
-        [{ value: 'Programme A' }, { value: 'Gold,Platinum'        }, { value: '120'  }],
-        [{ value: 'Programme A' }, { value: 'Silver,Platinum'      }, { value: '180'  }],
-        [{ value: 'Programme A' }, { value: 'Gold,Silver,Platinum' }, { value: '60'   }],
-        [{ value: 'Programme B' }, { value: 'Gold'                 }, { value: '310'  }],
-        [{ value: 'Programme B' }, { value: 'Silver'               }, { value: '520'  }],
-        [{ value: 'Programme B' }, { value: 'Platinum'             }, { value: '195'  }],
-        [{ value: 'Programme B' }, { value: 'Gold,Silver'          }, { value: '110'  }],
-        [{ value: 'Programme B' }, { value: 'Gold,Platinum'        }, { value: '55'   }],
-        [{ value: 'Programme B' }, { value: 'Silver,Platinum'      }, { value: '90'   }],
-        [{ value: 'Programme B' }, { value: 'Gold,Silver,Platinum' }, { value: '28'   }],
+        [{ value: 'Gold'                 }, { value: '910'  }],
+        [{ value: 'Silver'               }, { value: '1470' }],
+        [{ value: 'Platinum'             }, { value: '575'  }],
+        [{ value: 'Gold,Silver'          }, { value: '340'  }],
+        [{ value: 'Gold,Platinum'        }, { value: '175'  }],
+        [{ value: 'Silver,Platinum'      }, { value: '270'  }],
+        [{ value: 'Gold,Silver,Platinum' }, { value: '88'   }],
       ];
 
       const dataTable = { columns, data: rows };
@@ -208,7 +200,6 @@
       const vizSpec = {
         marksSpecificationCollection: [{
           encodingCollection: [
-            { id: 'group', fieldCollection: [{ fieldName: 'Programme'       }] },
             { id: 'sets',  fieldCollection: [{ fieldName: 'Loyalty Segment' }] },
             { id: 'value', fieldCollection: [{ fieldName: 'Customer Count'  }] },
           ],
