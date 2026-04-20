@@ -11,6 +11,12 @@ Build Tableau workbooks and Viz Extensions locally using AI generation, then pub
 - **MCP server:** `@tableau/mcp-server` — configured in `.mcp.json` (never commit this file)
 - Use MCP tools to inspect existing workbooks, datasources, views, and Pulse metrics before building anything new.
 
+## Gallery Page
+
+- **Gallery URL:** https://vj-cyntexa.github.io/tableau-viz/gallery.html
+- **Local file:** `gallery.html` (at repo root)
+- **Rule:** Whenever a new extension is built or a test page URL changes, update `gallery.html` to add/update the extension card. Add Live cards under "Live Extensions" with working test page and extension links. Add planned extensions as dimmed cards under "Planned Extensions".
+
 ## Folder Conventions
 
 Always maintain this structure. Create folders if missing:

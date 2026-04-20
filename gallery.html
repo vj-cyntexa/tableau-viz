@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tableau Viz Extensions — Cyntexa Gallery</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f6fa;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 28px 32px 24px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    header p {
+      font-size: 13px;
+      color: #aab;
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .badge-live { background: #27ae60; color: #fff; }
+    .badge-planned { background: #e67e22; color: #fff; }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: box-shadow 0.15s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    }
+
+    .card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-use {
+      font-size: 11px;
+      color: #888;
+      font-style: italic;
+    }
+
+    .card-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .link-test {
+      background: #eef4ff;
+      color: #1f77b4;
+      border: 1px solid #c4d9f0;
+    }
+    .link-test:hover { background: #d6e8ff; }
+
+    .link-prod {
+      background: #f0f0f0;
+      color: #555;
+      border: 1px solid #ddd;
+    }
+    .link-prod:hover { background: #e4e4e4; }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #aaa;
+      border-top: 1px solid #e8e8e8;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Tableau Viz Extensions <span class="badge badge-live">Cyntexa</span></h1>
+  <p>Custom D3.js Viz Extensions for Tableau — loyalty analytics, CRM, and retail dashboards</p>
+</header>
+
+<main>
+
+  <div class="section-title">Live Extensions</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-name">Multi-Line Chart</div>
+      <div class="card-desc">Time series with multiple configurable lines per dimension segment. Supports custom colors, line thickness, and crosshair tooltip.</div>
+      <div class="card-use">Use for: trend analysis by loyalty tier, revenue over time per segment</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/multi-line-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/multi-line-chart/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Bar Chart</div>
+      <div class="card-desc">Stacked, grouped, horizontal, and vertical bar chart with optional dotted average reference line. Fully configurable layout and orientation.</div>
+      <div class="card-use">Use for: segment comparison, store performance ranking, revenue by channel</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/bar-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/bar-chart/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Venn Diagram</div>
+      <div class="card-desc">Multi-panel Venn diagram for set overlap analysis. Supports up to 3+ overlapping sets per panel, multi-group tiling, per-circle color controls, and Diagram / List view toggle.</div>
+      <div class="card-use">Use for: loyalty segment overlap, customer membership across programmes</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/venn-diagram/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/venn-diagram/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">KPI Card</div>
+      <div class="card-desc">Single-metric display card with four modes: Value, Comparison, Delta, and Sparkline. Configurable via mode toggle bar.</div>
+      <div class="card-use">Use for: executive dashboards, headline metrics, period-over-period comparison</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/kpi-card/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/kpi-card/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Donut Chart</div>
+      <div class="card-desc">Three donut chart modes: Standard, Exploded (offset slices), and Multi-Ring (concentric rings). Smooth arc transitions.</div>
+      <div class="card-use">Use for: tier composition, channel mix, category share</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/donut-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/donut-chart/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Bar-Line Combo</div>
+      <div class="card-desc">Dual-axis chart with bars on the left axis and a line overlay on the right axis. Supports optional color grouping for stacked bars.</div>
+      <div class="card-use">Use for: revenue (bars) vs. customer count (line), sales vs. redemption rate</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/bar-line-combo/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/bar-line-combo/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Relationship Table</div>
+      <div class="card-desc">Heatmap matrix for any two categorical dimensions. Color intensity = value. Sortable columns, luminance-adaptive text, hover tooltips.</div>
+      <div class="card-use">Use for: channel × transaction type analysis, region × product heatmap</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/relationship-table/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/relationship-table/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-name">Affinity Matrix</div>
+      <div class="card-desc">Product co-purchase matrix with Count, Lift, and Support metric toggle. Diverging color scale for Lift (purple = avoidance, orange = affinity). Sortable, symmetric mode, diagonal highlighting.</div>
+      <div class="card-use">Use for: product affinity, market basket analysis, cross-sell opportunity identification</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="extensions/affinity-matrix/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="extensions/affinity-matrix/index.html" target="_blank">Extension</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-title">Planned Extensions <span class="badge badge-planned">In Progress</span></div>
+  <div class="grid">
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Cohort Retention Heatmap</div>
+      <div class="card-desc">Grid of acquisition cohorts × periods. Cell color = retention rate %. The standard chart for loyalty retention diagnostics.</div>
+      <div class="card-use">Use for: cohort retention, acquisition quality comparison</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Funnel Chart</div>
+      <div class="card-desc">Horizontal or vertical funnel with trapezoid stages showing volume and conversion rate at each step.</div>
+      <div class="card-use">Use for: enrollment funnel, redemption flow, onboarding drop-off</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Sankey / Flow Diagram</div>
+      <div class="card-desc">Node-link flow diagram showing customer migration between loyalty tiers or touchpoints. Edge width = flow volume.</div>
+      <div class="card-use">Use for: tier migration, customer journey, segment flow</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">RFM Scatter Plot</div>
+      <div class="card-desc">Recency × Frequency scatter with Monetary as bubble size. Quadrant lines at median values create the classic RFM view.</div>
+      <div class="card-use">Use for: RFM segmentation, customer prioritization</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Treemap</div>
+      <div class="card-desc">Nested rectangle chart where area = size measure. 1-level or 2-level hierarchy. Color = category or second measure.</div>
+      <div class="card-use">Use for: revenue by segment hierarchy, tier × category breakdown</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Waterfall Chart</div>
+      <div class="card-desc">Sequential bars showing running total with positive/negative increments. Connector lines between bars.</div>
+      <div class="card-use">Use for: net member movement, revenue attribution, P&amp;L bridge</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Survival / Churn Curve</div>
+      <div class="card-desc">Kaplan-Meier style survival curve per segment. Shows probability of remaining active at each time period. Optional confidence interval bands.</div>
+      <div class="card-use">Use for: churn analysis, retention curve by acquisition cohort</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Bubble Chart</div>
+      <div class="card-desc">3-measure scatter plot: X, Y, and bubble size. Quadrant lines at medians. Segment color coding.</div>
+      <div class="card-use">Use for: segment prioritization, CLV × frequency × count</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Network / Force Graph</div>
+      <div class="card-desc">Force-directed product co-purchase network. Nodes = products, edges = lift score. Clusters emerge for naturally co-purchased products.</div>
+      <div class="card-use">Use for: product affinity clusters, basket analysis visualization</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Gauge / Progress Arc</div>
+      <div class="card-desc">Semi-circular arc gauge showing KPI value vs target. Traffic-light color thresholds. Configurable arc thickness.</div>
+      <div class="card-use">Use for: redemption rate vs goal, tier fill rate, program KPIs</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Histogram / Distribution</div>
+      <div class="card-desc">Frequency distribution with configurable bin count, optional KDE overlay, and per-segment overlapping mode.</div>
+      <div class="card-use">Use for: CLV distribution, order value spread, points balance histogram</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Stacked Area Chart</div>
+      <div class="card-desc">Time series with stacked/normalized/grouped line modes. Shows tier mix evolution over time.</div>
+      <div class="card-use">Use for: tier composition over time, revenue mix trend</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">CLV vs Churn Risk Quadrant</div>
+      <div class="card-desc">Scatter plot with configurable quadrant lines at CLV and churn risk thresholds. Labels: Protect &amp; Grow, Urgent Retention, Nurture, Deprioritize.</div>
+      <div class="card-use">Use for: retention spend prioritization, segment action matrix</div>
+    </div>
+
+    <div class="card" style="opacity:0.7">
+      <div class="card-name">Lollipop / Ranking Chart</div>
+      <div class="card-desc">Clean ranked lollipop chart (stem + dot) with benchmark line. Horizontal or vertical orientation.</div>
+      <div class="card-use">Use for: store rankings, campaign leaderboard, segment KPI comparison</div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  Built by Cyntexa &mdash; <a href="https://github.com/vj-cyntexa/tableau-viz" style="color:#1f77b4">GitHub</a>
+</footer>
+
+</body>
+</html>
