@@ -13,7 +13,7 @@
 ## Progress Tracker
 - [x] Task 1: TREX manifests
 - [x] Task 2: index.html
-- [ ] Task 3: chart.js
+- [x] Task 3: chart.js
 - [ ] Task 4: test.html
 - [ ] Task 5: README.md
 - [ ] Task 6: Push all
@@ -276,7 +276,7 @@ Create `extensions/donut-chart/index.html`:
 
 **File:** `extensions/donut-chart/chart.js`
 
-- [ ] **Step 3.1: Create chart.js**
+- [x] **Step 3.1: Create chart.js**
 
 Create `extensions/donut-chart/chart.js`:
 
