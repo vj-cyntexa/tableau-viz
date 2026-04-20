@@ -27,7 +27,7 @@
 
 - [x] Task 1 — TREX Manifests
 - [x] Task 2 — HTML Shell (`index.html`)
-- [ ] Task 3 — Chart Logic (`chart.js`)
+- [x] Task 3 — Chart Logic (`chart.js`)
 - [ ] Task 4 — Test Page (`test.html`)
 - [ ] Task 5 — README
 - [ ] Task 6 — Push and verify
@@ -401,7 +401,7 @@ git commit -m "feat: add html shell for relationship-table extension"
 **Files:**
 - Create: `extensions/relationship-table/chart.js`
 
-- [ ] **Step 3.1: Write chart.js**
+- [x] **Step 3.1: Write chart.js**
 
 Create `extensions/relationship-table/chart.js`:
 
@@ -784,7 +784,7 @@ function clearError() {
 }
 ```
 
-- [ ] **Step 3.2: Commit**
+- [x] **Step 3.2: Commit**
 
 ```bash
 git add extensions/relationship-table/chart.js
