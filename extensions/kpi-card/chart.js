@@ -8,7 +8,7 @@ const COLOR_NEUTRAL = '#3498db';
 // ─── Format helpers ───────────────────────────────────────────────────────────
 // d3.format(',.2s') produces e.g. "1.2M", "340k" — used as-is per spec.
 const fmtBig   = d3.format(',.2s');
-const fmtDelta = d3.format('+.1%');
+const fmtDelta = d3.format('.1%');
 
 // ─── Mode state (module-scope so it survives re-renders) ──────────────────────
 let currentMode = 'simple';
@@ -155,47 +155,41 @@ function parseTableauData(dataTable, vizSpec) {
 
 // ─── Card rendering ──────────────────────────────────────────────────────────
 function renderCard(data, mode) {
-  const card = document.getElementById('kpi-card');
-  const body = document.getElementById('card-body');
-
-  // Reset trend background classes.
-  card.classList.remove('trend-up', 'trend-down');
+  const card = document.getElementById('card');
 
   const displayLabel = data.label ?? data.valueField ?? 'KPI';
 
   switch (mode) {
     case 'comparison': {
       if (!data.hasComparison || data.comparison === null) {
-        body.innerHTML = buildSimpleHTML(displayLabel, data.value) +
-          '<p class="kpi-hint">Add a field to the Comparison encoding slot to enable this mode.</p>';
+        card.innerHTML = buildSimpleHTML(displayLabel, data.value) +
+          '<p class="card-hint">Add a field to the Comparison encoding slot to enable this mode.</p>';
       } else {
-        body.innerHTML = buildComparisonHTML(displayLabel, data.value, data.comparison);
+        card.innerHTML = buildComparisonHTML(displayLabel, data.value, data.comparison);
       }
       break;
     }
     case 'trend': {
       if (!data.hasComparison || data.comparison === null) {
-        body.innerHTML = buildSimpleHTML(displayLabel, data.value) +
-          '<p class="kpi-hint">Add a field to the Comparison encoding slot to enable Trend mode.</p>';
+        card.innerHTML = buildSimpleHTML(displayLabel, data.value) +
+          '<p class="card-hint">Add a field to the Comparison encoding slot to enable Trend mode.</p>';
       } else {
-        const up = data.value >= data.comparison;
-        card.classList.add(up ? 'trend-up' : 'trend-down');
-        body.innerHTML = buildTrendHTML(displayLabel, data.value, up);
+        card.innerHTML = buildTrendHTML(displayLabel, data.value, data.comparison);
       }
       break;
     }
     case 'sparkline': {
       if (!data.hasHistory || data.history.length === 0) {
-        body.innerHTML = buildSimpleHTML(displayLabel, data.value) +
-          '<p class="kpi-hint">Add fields to the History and Date encoding slots to enable Sparkline mode.</p>';
+        card.innerHTML = buildSimpleHTML(displayLabel, data.value) +
+          '<p class="card-hint">Add fields to the History and Date encoding slots to enable Sparkline mode.</p>';
       } else {
-        body.innerHTML = buildSparklineHTML(displayLabel, data.value, data.history);
+        buildSparklineIntoCard(card, displayLabel, data.value, data.history);
       }
       break;
     }
     case 'simple':
     default: {
-      body.innerHTML = buildSimpleHTML(displayLabel, data.value);
+      card.innerHTML = buildSimpleHTML(displayLabel, data.value);
       break;
     }
   }
@@ -205,37 +199,50 @@ function renderCard(data, mode) {
 
 function buildSimpleHTML(label, value) {
   return `
-    <p class="kpi-label">${escHtml(label)}</p>
-    <p class="kpi-value">${fmtBig(value)}</p>
+    <div class="card-label">${escHtml(label)}</div>
+    <div class="card-value">${fmtBig(value)}</div>
   `;
 }
 
 function buildComparisonHTML(label, value, comparison) {
   const delta = calcDelta(value, comparison);
-  const deltaStr = delta === null ? 'N/A' : fmtDelta(delta);
+  const deltaStr = delta === null ? 'N/A' : (delta >= 0 ? '+' : '') + fmtDelta(delta);
   const deltaClass = delta === null ? 'neutral' : delta >= 0 ? 'positive' : 'negative';
+  const arrow = delta === null ? '' : delta >= 0 ? '▲ ' : '▼ ';
   return `
-    <p class="kpi-label">${escHtml(label)}</p>
-    <p class="kpi-value">${fmtBig(value)}</p>
-    <div class="kpi-comparison-row">
-      <span class="kpi-prev-value">vs ${fmtBig(comparison)}</span>
-      <span class="kpi-delta ${deltaClass}">${deltaStr}</span>
+    <div class="card-label">${escHtml(label)}</div>
+    <div class="card-value">${fmtBig(value)}</div>
+    <div class="card-comparison">
+      <span class="card-delta ${deltaClass}">${arrow}${deltaStr}</span>
+      <span>vs ${fmtBig(comparison)}</span>
     </div>
   `;
 }
 
-function buildTrendHTML(label, value, up) {
-  const arrow = up ? '▲' : '▼';
-  const arrowClass = up ? 'up' : 'down';
+function buildTrendHTML(label, value, comparison) {
+  const up = value >= comparison;
+  const badgeCls = up ? 'up' : 'down';
+  const icon = up ? '▲' : '▼';
+  const word = up ? 'UP' : 'DOWN';
   return `
-    <p class="kpi-label">${escHtml(label)}</p>
-    <p class="kpi-value">${fmtBig(value)}</p>
-    <p class="kpi-trend-arrow ${arrowClass}">${arrow}</p>
+    <div class="card-label">${escHtml(label)}</div>
+    <div class="card-value">${fmtBig(value)}</div>
+    <div class="card-trend-badge ${badgeCls}">${icon} ${word}</div>
   `;
 }
 
-function buildSparklineHTML(label, value, history) {
+function buildSparklineIntoCard(card, label, value, history) {
   const W = 120, H = 40, PAD = 2;
+
+  // Set the non-SVG content first via innerHTML.
+  card.innerHTML = `
+    <div class="card-label">${escHtml(label)}</div>
+    <div class="card-value">${fmtBig(value)}</div>
+    <div class="card-sparkline"></div>
+  `;
+
+  // Append the SVG into the sparkline container via D3.
+  const sparklineEl = card.querySelector('.card-sparkline');
   const vals = history.map(p => p.val);
   const minV = d3.min(vals);
   const maxV = d3.max(vals);
@@ -249,17 +256,19 @@ function buildSparklineHTML(label, value, history) {
     .y(p => yScale(p.val))
     .curve(d3.curveCatmullRom.alpha(0.5));
 
-  const pathD = lineGen(history);
-
-  const svgMarkup = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${pathD}" fill="none" stroke="${COLOR_NEUTRAL}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`;
-
-  return `
-    <p class="kpi-label">${escHtml(label)}</p>
-    <p class="kpi-value">${fmtBig(value)}</p>
-    <div class="kpi-sparkline">${svgMarkup}</div>
-  `;
+  d3.select(sparklineEl)
+    .append('svg')
+    .attr('width', W)
+    .attr('height', H)
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .append('path')
+    .datum(history)
+    .attr('d', lineGen)
+    .attr('fill', 'none')
+    .attr('stroke', COLOR_NEUTRAL)
+    .attr('stroke-width', 2)
+    .attr('stroke-linecap', 'round')
+    .attr('stroke-linejoin', 'round');
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────

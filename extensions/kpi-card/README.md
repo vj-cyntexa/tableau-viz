@@ -12,7 +12,7 @@ A Tableau Viz Extension that renders a clean KPI metric card with four selectabl
 |---|---|
 | Simple | Large primary value with label |
 | Comparison | Current value vs previous/target with delta % |
-| Trend | Value + up/down arrow + green/red background |
+| Trend | Value + UP/DOWN badge pill (green or red) |
 | Sparkline | Value + mini line chart (D3) from history data |
 
 Switch modes with the pill buttons in the top-right corner of the card. The selected mode persists across data refreshes.
