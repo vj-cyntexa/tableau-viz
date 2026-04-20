@@ -43,6 +43,21 @@
     }
     .badge-live { background: #27ae60; color: #fff; }
     .badge-planned { background: #e67e22; color: #fff; }
+    .badge-high { background: #27ae60; color: #fff; }
+    .badge-medium { background: #2980b9; color: #fff; }
+
+    .new-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #27ae60;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 2px 7px;
+      letter-spacing: 0.03em;
+    }
 
     main {
       max-width: 1200px;
@@ -61,7 +76,28 @@
       border-bottom: 2px solid #e0e0e0;
     }
 
+    .subsection-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #aaa;
+      margin-bottom: 12px;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: #f0f4ff;
+      border-left: 3px solid #5b8dee;
+      border-radius: 0 4px 4px 0;
+    }
+
     .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .grid-new {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 16px;
@@ -78,6 +114,7 @@
       flex-direction: column;
       gap: 8px;
       transition: box-shadow 0.15s;
+      position: relative;
     }
 
     .card:hover {
@@ -156,6 +193,7 @@
 <main>
 
   <div class="section-title">Live Extensions</div>
+
   <div class="grid">
 
     <div class="card">
@@ -241,91 +279,161 @@
 
   </div>
 
-  <div class="section-title">Planned Extensions <span class="badge badge-planned">In Progress</span></div>
-  <div class="grid">
+  <div class="subsection-title">Recently Added — April 2026</div>
+  <div class="grid-new">
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Cohort Retention Heatmap</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Cohort Retention Heatmap <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Grid of acquisition cohorts × periods. Cell color = retention rate %. The standard chart for loyalty retention diagnostics.</div>
-      <div class="card-use">Use for: cohort retention, acquisition quality comparison</div>
+      <div class="card-use">Best for: Which acquisition cohorts retain best</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/cohort-retention-heatmap/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/cohort-retention-heatmap/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Funnel Chart</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Funnel Chart <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Horizontal or vertical funnel with trapezoid stages showing volume and conversion rate at each step.</div>
-      <div class="card-use">Use for: enrollment funnel, redemption flow, onboarding drop-off</div>
+      <div class="card-use">Best for: Where customers drop off in enrollment/redemption</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/funnel-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/funnel-chart/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Sankey / Flow Diagram</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Sankey Diagram <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Node-link flow diagram showing customer migration between loyalty tiers or touchpoints. Edge width = flow volume.</div>
-      <div class="card-use">Use for: tier migration, customer journey, segment flow</div>
+      <div class="card-use">Best for: Customer migration between loyalty tiers over time</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/sankey-diagram/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/sankey-diagram/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">RFM Scatter Plot</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">RFM Scatter <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Recency × Frequency scatter with Monetary as bubble size. Quadrant lines at median values create the classic RFM view.</div>
-      <div class="card-use">Use for: RFM segmentation, customer prioritization</div>
+      <div class="card-use">Best for: Segment customers by Recency × Frequency × Monetary</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/rfm-scatter/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/rfm-scatter/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Treemap</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Treemap <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Nested rectangle chart where area = size measure. 1-level or 2-level hierarchy. Color = category or second measure.</div>
-      <div class="card-use">Use for: revenue by segment hierarchy, tier × category breakdown</div>
+      <div class="card-use">Best for: Revenue contribution by tier hierarchy</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/treemap/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/treemap/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Waterfall Chart</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Waterfall Chart <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Sequential bars showing running total with positive/negative increments. Connector lines between bars.</div>
-      <div class="card-use">Use for: net member movement, revenue attribution, P&amp;L bridge</div>
+      <div class="card-use">Best for: Net member change (new − churned − downgraded)</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/waterfall-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/waterfall-chart/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Survival / Churn Curve</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Survival Curve <span class="badge badge-high">High Priority</span></div>
       <div class="card-desc">Kaplan-Meier style survival curve per segment. Shows probability of remaining active at each time period. Optional confidence interval bands.</div>
-      <div class="card-use">Use for: churn analysis, retention curve by acquisition cohort</div>
+      <div class="card-use">Best for: Probability of staying active at each time point</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/survival-curve/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/survival-curve/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Bubble Chart</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Bubble Chart <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">3-measure scatter plot: X, Y, and bubble size. Quadrant lines at medians. Segment color coding.</div>
-      <div class="card-use">Use for: segment prioritization, CLV × frequency × count</div>
+      <div class="card-use">Best for: Segment prioritization on 2 axes</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/bubble-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/bubble-chart/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Network / Force Graph</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Network Graph <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">Force-directed product co-purchase network. Nodes = products, edges = lift score. Clusters emerge for naturally co-purchased products.</div>
-      <div class="card-use">Use for: product affinity clusters, basket analysis visualization</div>
+      <div class="card-use">Best for: Product clusters from basket analysis</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/network-graph/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/network-graph/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Gauge / Progress Arc</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Gauge Chart <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">Semi-circular arc gauge showing KPI value vs target. Traffic-light color thresholds. Configurable arc thickness.</div>
-      <div class="card-use">Use for: redemption rate vs goal, tier fill rate, program KPIs</div>
+      <div class="card-use">Best for: KPI vs. target (e.g. redemption rate vs. goal)</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/gauge-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/gauge-chart/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Histogram / Distribution</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Histogram <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">Frequency distribution with configurable bin count, optional KDE overlay, and per-segment overlapping mode.</div>
-      <div class="card-use">Use for: CLV distribution, order value spread, points balance histogram</div>
+      <div class="card-use">Best for: CLV / points balance distribution (find outliers)</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/histogram/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/histogram/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Stacked Area Chart</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Stacked Area Chart <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">Time series with stacked/normalized/grouped line modes. Shows tier mix evolution over time.</div>
-      <div class="card-use">Use for: tier composition over time, revenue mix trend</div>
+      <div class="card-use">Best for: How tier mix evolves over time</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/stacked-area-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/stacked-area-chart/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">CLV vs Churn Risk Quadrant</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">CLV vs Churn Quadrant <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">Scatter plot with configurable quadrant lines at CLV and churn risk thresholds. Labels: Protect &amp; Grow, Urgent Retention, Nurture, Deprioritize.</div>
-      <div class="card-use">Use for: retention spend prioritization, segment action matrix</div>
+      <div class="card-use">Best for: Which segments to invest in for retention</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/clv-churn-quadrant/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/clv-churn-quadrant/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
-    <div class="card" style="opacity:0.7">
-      <div class="card-name">Lollipop / Ranking Chart</div>
+    <div class="card">
+      <span class="new-badge">New</span>
+      <div class="card-name">Lollipop Chart <span class="badge badge-medium">Medium Priority</span></div>
       <div class="card-desc">Clean ranked lollipop chart (stem + dot) with benchmark line. Horizontal or vertical orientation.</div>
-      <div class="card-use">Use for: store rankings, campaign leaderboard, segment KPI comparison</div>
+      <div class="card-use">Best for: Ranked store/campaign performance vs benchmark</div>
+      <div class="card-links">
+        <a class="link-btn link-test" href="https://vj-cyntexa.github.io/tableau-viz/extensions/lollipop-chart/test.html" target="_blank">Test Page</a>
+        <a class="link-btn link-prod" href="https://vj-cyntexa.github.io/tableau-viz/extensions/lollipop-chart/index.html" target="_blank">Extension</a>
+      </div>
     </div>
 
   </div>
