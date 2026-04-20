@@ -1,11 +1,31 @@
 # Bar Chart Viz Extension
 
-A D3.js v7 Tableau Viz Extension that renders a bar chart with two modes:
+A D3.js v7 Tableau Viz Extension that renders a bar chart with five modes controlled by two independent toolbar toggles.
 
-- **Stacked bars** — color groups are stacked on top of each other per x-category
-- **Grouped (side-by-side) bars** — color groups are placed next to each other per x-category
+## Modes
 
-A toggle button inside the extension switches between modes with a 300ms animated transition.
+**Layout toggle** (Stacked / Grouped / 100%):
+
+- **Stacked** — color groups stacked on top of each other per x-category
+- **Grouped** — color groups placed side-by-side per x-category
+- **100% Stacked** — each x-category normalized to 100%; Y axis shows 0–100%; always vertical
+
+**Orientation toggle** (Vertical / Horizontal):
+
+- **Vertical** — bars grow upward; categories on X axis, values on Y axis
+- **Horizontal** — bars grow rightward; categories on Y axis, values on X axis
+
+This yields five effective combinations:
+
+| # | Layout | Orientation |
+|---|--------|-------------|
+| 1 | Stacked | Vertical (default) |
+| 2 | Grouped | Vertical |
+| 3 | Stacked | Horizontal |
+| 4 | Grouped | Horizontal |
+| 5 | 100% Stacked | Vertical (orientation toggle disabled) |
+
+All mode switches animate with a 300ms D3 transition.
 
 ## Encoding Slots
 

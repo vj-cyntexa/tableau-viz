@@ -39,26 +39,33 @@
     }
     #error:not(:empty) { display: block; }
 
-    #toggle-btn {
+    #toolbar {
       position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 200;
-      background: #ffffff;
-      border: 1.5px solid #4e79a7;
-      color: #4e79a7;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+    .btn-group {
+      display: flex;
       border-radius: 6px;
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 600;
+      overflow: hidden;
+      border: 1px solid #ccc;
+    }
+    .btn {
+      padding: 5px 10px;
+      font-size: 11px;
+      border: none;
+      background: #f5f5f5;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.10);
-      transition: background 0.15s, color 0.15s;
+      color: #444;
     }
-    #toggle-btn:hover {
-      background: #4e79a7;
-      color: #ffffff;
+    .btn.active {
+      background: #3498db;
+      color: #fff;
     }
+    .btn:hover:not(.active) { background: #e8e8e8; }
 
     .grid line {
       stroke: #ebebeb;
@@ -104,7 +111,17 @@
   </style>
 </head>
 <body>
-  <button id="toggle-btn">Switch to Grouped</button>
+  <div id="toolbar">
+    <div class="btn-group" id="layout-group">
+      <button class="btn active" data-layout="stacked">Stacked</button>
+      <button class="btn" data-layout="grouped">Grouped</button>
+      <button class="btn" data-layout="pct">100%</button>
+    </div>
+    <div class="btn-group" id="orient-group">
+      <button class="btn active" data-orient="vertical">Vertical</button>
+      <button class="btn" data-orient="horizontal">Horizontal</button>
+    </div>
+  </div>
   <div id="chart"></div>
   <div id="error"></div>
   <script src="chart.js"></script>

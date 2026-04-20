@@ -1,23 +1,45 @@
 'use strict';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
-const MARGIN = { top: 30, right: 160, bottom: 70, left: 75 };
 const COLORS = d3.schemeTableau10;
 const TRANSITION_MS = 300;
 
 // ─── Application state ────────────────────────────────────────────────────────
-let mode = 'stacked'; // 'stacked' | 'grouped'
+let layout = 'stacked';       // 'stacked' | 'grouped' | 'pct'
+let orientation = 'vertical'; // 'vertical' | 'horizontal'
+let lastSeries = null;
 
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
 tableau.extensions.initializeAsync().then(() => {
   const ws = tableau.extensions.worksheetContent.worksheet;
 
-  // Wire toggle button
-  const btn = document.getElementById('toggle-btn');
-  btn.addEventListener('click', () => {
-    mode = (mode === 'stacked') ? 'grouped' : 'stacked';
-    btn.textContent = (mode === 'stacked') ? 'Switch to Grouped' : 'Switch to Stacked';
-    render(ws);
+  // Wire layout buttons
+  document.querySelectorAll('[data-layout]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!lastSeries) return;
+      layout = btn.dataset.layout;
+      if (layout === 'pct') {
+        orientation = 'vertical';
+        // Sync orient buttons to show Vertical as active
+        document.querySelectorAll('[data-orient]').forEach(b => {
+          b.classList.toggle('active', b.dataset.orient === 'vertical');
+        });
+      }
+      document.querySelectorAll('[data-layout]').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('orient-group').style.opacity = layout === 'pct' ? '0.4' : '1';
+      drawChart(lastSeries);
+    });
+  });
+
+  // Wire orientation buttons
+  document.querySelectorAll('[data-orient]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!lastSeries) return;
+      if (layout === 'pct') return;
+      orientation = btn.dataset.orient;
+      document.querySelectorAll('[data-orient]').forEach(b => b.classList.toggle('active', b === btn));
+      drawChart(lastSeries);
+    });
   });
 
   // Listen for data changes
@@ -37,6 +59,7 @@ async function render(worksheet) {
       fetchData(worksheet),
     ]);
     const parsed = parseTableauData(dataTable, vizSpec);
+    lastSeries = parsed;
     drawChart(parsed);
   } catch (err) {
     setError(err.message || String(err));
@@ -123,6 +146,12 @@ function drawChart({ xKeys, colorKeys, wideData }) {
   const container = document.getElementById('chart');
   const W = container.clientWidth;
   const H = container.clientHeight;
+
+  // Dynamic margin based on orientation
+  const MARGIN = orientation === 'horizontal'
+    ? { top: 20, right: 160, bottom: 50, left: 120 }
+    : { top: 30, right: 160, bottom: 60, left: 75 };
+
   const w = W - MARGIN.left - MARGIN.right;
   const h = H - MARGIN.top - MARGIN.bottom;
 
@@ -131,47 +160,26 @@ function drawChart({ xKeys, colorKeys, wideData }) {
     .domain(colorKeys)
     .range(COLORS);
 
-  // ── X scale (outer band) ────────────────────────────────────────────────
-  const xScale = d3.scaleBand()
-    .domain(xKeys)
-    .range([0, w])
-    .padding(0.25);
+  // ── Normalize data for pct mode ─────────────────────────────────────────
+  const pctData = wideData.map(d => {
+    const total = d3.sum(colorKeys, ck => d[ck]);
+    const obj = { x: d.x };
+    colorKeys.forEach(ck => {
+      obj[ck] = total > 0 ? d[ck] / total : 0;
+    });
+    return obj;
+  });
 
-  // ── Inner scale for grouped mode ────────────────────────────────────────
-  const xInner = d3.scaleBand()
-    .domain(colorKeys)
-    .range([0, xScale.bandwidth()])
-    .padding(0.08);
-
-  // ── Y scales (different for each mode) ─────────────────────────────────
-  // Stacked: max = greatest sum of all colors per x category
-  const stackedMax = d3.max(wideData, d =>
-    d3.sum(colorKeys, ck => d[ck])
-  );
-
-  // Grouped: max = greatest individual value
-  const groupedMax = d3.max(wideData, d =>
-    d3.max(colorKeys, ck => d[ck])
-  );
-
-  const yMax = (mode === 'stacked') ? stackedMax : groupedMax;
-
-  const yScale = d3.scaleLinear()
-    .domain([0, yMax * 1.1])
-    .nice()
-    .range([h, 0]);
-
-  // ── Stacked layout ──────────────────────────────────────────────────────
+  // ── Stack layout ────────────────────────────────────────────────────────
   const stack = d3.stack().keys(colorKeys);
-  const stackedSeries = stack(wideData);
+  const stackedSeries   = stack(wideData);
+  const pctSeries       = stack(pctData);
 
   // ── Build or update SVG ─────────────────────────────────────────────────
   const svgId = 'bar-chart-svg';
   let svg = d3.select(container).select(`#${svgId}`);
-  let isNew = false;
 
   if (svg.empty()) {
-    isNew = true;
     svg = d3.select(container)
       .append('svg')
       .attr('id', svgId)
@@ -181,55 +189,25 @@ function drawChart({ xKeys, colorKeys, wideData }) {
     svg.attr('width', W).attr('height', H);
   }
 
-  // Root group
-  let g = svg.select('.root-g');
-  if (g.empty()) {
-    g = svg.append('g')
-      .attr('class', 'root-g')
-      .attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
-  }
-
-  // ── Grid lines ──────────────────────────────────────────────────────────
-  let gridG = g.select('.grid');
-  if (gridG.empty()) {
-    gridG = g.append('g').attr('class', 'grid');
-  }
-  gridG.transition().duration(TRANSITION_MS)
-    .call(d3.axisLeft(yScale).tickSize(-w).tickFormat(''))
-    .call(grp => grp.select('.domain').remove());
-
-  // ── X axis ──────────────────────────────────────────────────────────────
-  let xAxisG = g.select('.x-axis');
-  if (xAxisG.empty()) {
-    xAxisG = g.append('g')
-      .attr('class', 'axis x-axis')
-      .attr('transform', `translate(0,${h})`);
-  }
-  xAxisG.call(d3.axisBottom(xScale).tickSizeOuter(0))
-    .selectAll('text')
-    .attr('dy', '1.2em');
-
-  // ── Y axis ──────────────────────────────────────────────────────────────
-  let yAxisG = g.select('.y-axis');
-  if (yAxisG.empty()) {
-    yAxisG = g.append('g').attr('class', 'axis y-axis');
-  }
-  yAxisG.transition().duration(TRANSITION_MS)
-    .call(d3.axisLeft(yScale).ticks(6).tickSizeOuter(0).tickFormat(d3.format('~s')));
+  // Root group — recreate on each render to reset transform cleanly
+  svg.selectAll('.root-g').remove();
+  const g = svg.append('g')
+    .attr('class', 'root-g')
+    .attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
 
   // ── Tooltip ──────────────────────────────────────────────────────────────
-  let tooltip = d3.select(container).select('.tooltip');
-  if (tooltip.empty()) {
-    tooltip = d3.select(container)
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('opacity', 0)
-      .style('position', 'absolute');
-  }
+  d3.select(container).selectAll('.tooltip').remove();
+  const tooltip = d3.select(container)
+    .append('div')
+    .attr('class', 'tooltip')
+    .style('opacity', 0)
+    .style('position', 'absolute');
 
   const fmtNum = d3.format(',~f');
+  const fmtPct = d3.format('.1%');
 
   function showTooltip(event, xCat, colorKey, value) {
+    const displayVal = layout === 'pct' ? fmtPct(value) : fmtNum(value);
     tooltip
       .style('opacity', 1)
       .style('left', `${event.offsetX + 14}px`)
@@ -237,7 +215,7 @@ function drawChart({ xKeys, colorKeys, wideData }) {
       .html(
         `<div class="tt-cat">${xCat}</div>` +
         `<span style="color:${colorScale(colorKey)}">&#9679;</span>&nbsp;` +
-        `${colorKey}: <b>${fmtNum(value)}</b>`
+        `${colorKey}: <b>${displayVal}</b>`
       );
   }
 
@@ -245,151 +223,311 @@ function drawChart({ xKeys, colorKeys, wideData }) {
     tooltip.style('opacity', 0);
   }
 
-  // ── Bar groups ──────────────────────────────────────────────────────────
-  // We key each rect by "xCat|colorKey" so D3 can transition without teardown.
-  // Each colored layer (stacked series) corresponds to one colorKey.
-
-  const layerSel = g.selectAll('.bar-layer')
-    .data(stackedSeries, d => d.key);
-
-  const layerEnter = layerSel.enter()
-    .append('g')
-    .attr('class', 'bar-layer')
-    .attr('fill', d => colorScale(d.key));
-
-  const layerMerge = layerEnter.merge(layerSel);
-
-  // For each layer, bind rects (one per x-category)
-  layerMerge.each(function(layerData) {
-    const colorKey = layerData.key;
-    const colorIdx = colorKeys.indexOf(colorKey);
-    const layer = d3.select(this);
-
-    const rectSel = layer.selectAll('.bar-rect')
-      .data(layerData, d => d.data.x);
-
-    const rectEnter = rectSel.enter()
-      .append('rect')
-      .attr('class', 'bar-rect')
-      .attr('rx', 2);
-
-    // Initial position for entering rects: at the bottom (height 0)
-    if (isNew) {
-      rectEnter
-        .attr('x',      d => computeX(d.data.x, colorIdx))
-        .attr('y',      h)
-        .attr('width',  computeWidth(colorIdx))
-        .attr('height', 0);
-    } else {
-      rectEnter
-        .attr('x',      d => computeX(d.data.x, colorIdx))
-        .attr('y',      h)
-        .attr('width',  computeWidth(colorIdx))
-        .attr('height', 0);
-    }
-
-    rectEnter.merge(rectSel)
-      .on('mouseover', function(event, d) {
-        d3.select(this).attr('opacity', 0.8);
-        const val = mode === 'stacked'
-          ? d[1] - d[0]
-          : d.data[colorKey];
-        showTooltip(event, d.data.x, colorKey, val);
-      })
-      .on('mousemove', function(event, d) {
-        tooltip
-          .style('left', `${event.offsetX + 14}px`)
-          .style('top',  `${event.offsetY - 10}px`);
-      })
-      .on('mouseout', function() {
-        d3.select(this).attr('opacity', 1);
-        hideTooltip();
-      })
-      .transition()
-      .duration(TRANSITION_MS)
-      .attr('x',      d => computeX(d.data.x, colorIdx))
-      .attr('y',      d => computeY(d, colorKey))
-      .attr('width',  computeWidth(colorIdx))
-      .attr('height', d => computeHeight(d, colorKey));
-
-    rectSel.exit()
-      .transition().duration(TRANSITION_MS)
-      .attr('y', h).attr('height', 0)
-      .remove();
-  });
-
-  layerSel.exit().remove();
-
-  // ── Legend ───────────────────────────────────────────────────────────────
-  let legendG = g.select('.legend');
-  if (legendG.empty()) {
-    legendG = g.append('g')
-      .attr('class', 'legend')
-      .attr('transform', `translate(${w + 18}, 0)`);
+  // ── Branch by orientation ────────────────────────────────────────────────
+  if (orientation === 'vertical') {
+    drawVertical();
+  } else {
+    drawHorizontal();
   }
 
-  const legendItems = legendG.selectAll('.legend-item')
-    .data(colorKeys, d => d);
+  // ── Legend (shared) ──────────────────────────────────────────────────────
+  const legendG = g.append('g')
+    .attr('class', 'legend')
+    .attr('transform', `translate(${w + 18}, 0)`);
 
-  const legendEnter = legendItems.enter()
-    .append('g')
-    .attr('class', 'legend-item');
+  colorKeys.forEach((ck, i) => {
+    const item = legendG.append('g')
+      .attr('class', 'legend-item')
+      .attr('transform', `translate(0,${i * 22})`);
 
-  legendEnter.append('rect')
-    .attr('width', 14)
-    .attr('height', 14)
-    .attr('rx', 2)
-    .attr('y', -1);
+    item.append('rect')
+      .attr('width', 14)
+      .attr('height', 14)
+      .attr('rx', 2)
+      .attr('y', -1)
+      .attr('fill', colorScale(ck));
 
-  legendEnter.append('text')
-    .attr('x', 20)
-    .attr('y', 11);
+    item.append('text')
+      .attr('class', 'legend text')
+      .attr('x', 20)
+      .attr('y', 11)
+      .text(ck);
+  });
 
-  const legendMerge = legendEnter.merge(legendItems);
+  // ════════════════════════════════════════════════════════════════════════
+  // VERTICAL drawing (layout = stacked | grouped | pct)
+  // ════════════════════════════════════════════════════════════════════════
+  function drawVertical() {
+    // X scale (outer band)
+    const xScale = d3.scaleBand()
+      .domain(xKeys)
+      .range([0, w])
+      .padding(0.25);
 
-  legendMerge
-    .attr('transform', (d, i) => `translate(0,${i * 22})`)
-    .select('rect')
-      .attr('fill', d => colorScale(d));
+    // Inner scale for grouped mode
+    const xInner = d3.scaleBand()
+      .domain(colorKeys)
+      .range([0, xScale.bandwidth()])
+      .padding(0.08);
 
-  legendMerge
-    .select('text')
-      .text(d => d);
+    // Y scale
+    let yMax, yDomain, yFmt;
+    if (layout === 'pct') {
+      yDomain = [0, 1];
+      yFmt    = d3.format('.0%');
+    } else if (layout === 'stacked') {
+      yMax    = d3.max(wideData, d => d3.sum(colorKeys, ck => d[ck]));
+      yDomain = [0, yMax * 1.1];
+      yFmt    = d3.format('~s');
+    } else {
+      // grouped
+      yMax    = d3.max(wideData, d => d3.max(colorKeys, ck => d[ck]));
+      yDomain = [0, yMax * 1.1];
+      yFmt    = d3.format('~s');
+    }
 
-  legendItems.exit().remove();
+    const yScale = d3.scaleLinear()
+      .domain(yDomain)
+      .range([h, 0]);
 
-  // ── Layout helpers ────────────────────────────────────────────────────────
-  // These are called during transitions so must close over current mode/scales.
+    if (layout !== 'pct') yScale.nice();
 
-  function computeX(xCat, colorIdx) {
-    if (mode === 'stacked') {
+    // Grid
+    const gridG = g.append('g').attr('class', 'grid');
+    gridG.call(
+      d3.axisLeft(yScale).tickSize(-w).tickFormat('')
+    ).call(grp => grp.select('.domain').remove());
+
+    // X axis
+    g.append('g')
+      .attr('class', 'axis x-axis')
+      .attr('transform', `translate(0,${h})`)
+      .call(d3.axisBottom(xScale).tickSizeOuter(0))
+      .selectAll('text')
+        .attr('dy', '1.2em');
+
+    // Y axis
+    g.append('g')
+      .attr('class', 'axis y-axis')
+      .call(d3.axisLeft(yScale).ticks(6).tickSizeOuter(0).tickFormat(yFmt));
+
+    // Bars
+    const activeSeries = layout === 'pct' ? pctSeries : stackedSeries;
+
+    activeSeries.forEach(layerData => {
+      const colorKey = layerData.key;
+      const colorIdx = colorKeys.indexOf(colorKey);
+
+      const layer = g.append('g')
+        .attr('class', 'bar-layer')
+        .attr('fill', colorScale(colorKey));
+
+      layer.selectAll('.bar-rect')
+        .data(layerData, d => d.data.x)
+        .join(
+          enter => enter.append('rect')
+            .attr('class', 'bar-rect')
+            .attr('rx', 2)
+            .attr('x',      d => vComputeX(d.data.x, colorIdx, xScale, xInner))
+            .attr('y',      h)
+            .attr('width',  vComputeWidth(colorIdx, xScale, xInner))
+            .attr('height', 0)
+            .call(sel => sel.transition().duration(TRANSITION_MS)
+              .attr('y',      d => vComputeY(d, colorKey, yScale))
+              .attr('height', d => vComputeHeight(d, colorKey, h, yScale))
+            ),
+          update => update
+            .call(sel => sel.transition().duration(TRANSITION_MS)
+              .attr('x',      d => vComputeX(d.data.x, colorIdx, xScale, xInner))
+              .attr('y',      d => vComputeY(d, colorKey, yScale))
+              .attr('width',  vComputeWidth(colorIdx, xScale, xInner))
+              .attr('height', d => vComputeHeight(d, colorKey, h, yScale))
+            ),
+          exit => exit.transition().duration(TRANSITION_MS)
+            .attr('y', h).attr('height', 0).remove()
+        )
+        .on('mouseover', function(event, d) {
+          d3.select(this).attr('opacity', 0.8);
+          const val = (layout === 'stacked' || layout === 'pct')
+            ? d[1] - d[0]
+            : d.data[colorKey];
+          showTooltip(event, d.data.x, colorKey, val);
+        })
+        .on('mousemove', function(event) {
+          tooltip
+            .style('left', `${event.offsetX + 14}px`)
+            .style('top',  `${event.offsetY - 10}px`);
+        })
+        .on('mouseout', function() {
+          d3.select(this).attr('opacity', 1);
+          hideTooltip();
+        });
+    });
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // HORIZONTAL drawing (layout = stacked | grouped only; pct forces vertical)
+  // ════════════════════════════════════════════════════════════════════════
+  function drawHorizontal() {
+    // Y scale (band — categories)
+    const yScale = d3.scaleBand()
+      .domain(xKeys)
+      .range([0, h])
+      .padding(0.25);
+
+    // Inner scale for grouped mode
+    const yInner = d3.scaleBand()
+      .domain(colorKeys)
+      .range([0, yScale.bandwidth()])
+      .padding(0.08);
+
+    // X scale (linear — values)
+    let xMax;
+    if (layout === 'stacked') {
+      xMax = d3.max(wideData, d => d3.sum(colorKeys, ck => d[ck]));
+    } else {
+      xMax = d3.max(wideData, d => d3.max(colorKeys, ck => d[ck]));
+    }
+
+    const xScale = d3.scaleLinear()
+      .domain([0, xMax * 1.1])
+      .nice()
+      .range([0, w]);
+
+    // Grid — translated to bottom (y=h), ticks go upward (-h)
+    const gridG = g.append('g')
+      .attr('class', 'grid')
+      .attr('transform', `translate(0,${h})`);
+    gridG.call(
+      d3.axisBottom(xScale).tickSize(-h).tickFormat('')
+    ).call(grp => grp.select('.domain').remove());
+
+    // X axis (bottom, numeric)
+    g.append('g')
+      .attr('class', 'axis x-axis')
+      .attr('transform', `translate(0,${h})`)
+      .call(d3.axisBottom(xScale).ticks(6).tickSizeOuter(0).tickFormat(d3.format('~s')));
+
+    // Y axis (left, categorical)
+    g.append('g')
+      .attr('class', 'axis y-axis')
+      .call(d3.axisLeft(yScale).tickSizeOuter(0));
+
+    // Bars
+    stackedSeries.forEach(layerData => {
+      const colorKey = layerData.key;
+      const colorIdx = colorKeys.indexOf(colorKey);
+
+      const layer = g.append('g')
+        .attr('class', 'bar-layer')
+        .attr('fill', colorScale(colorKey));
+
+      layer.selectAll('.bar-rect')
+        .data(layerData, d => d.data.x)
+        .join(
+          enter => enter.append('rect')
+            .attr('class', 'bar-rect')
+            .attr('rx', 2)
+            .attr('x',      0)
+            .attr('y',      d => hComputeY(d.data.x, colorIdx, yScale, yInner))
+            .attr('width',  0)
+            .attr('height', hComputeHeight(colorIdx, yScale, yInner))
+            .call(sel => sel.transition().duration(TRANSITION_MS)
+              .attr('x',     d => hComputeX(d, colorKey, xScale))
+              .attr('width', d => hComputeWidth(d, colorKey, xScale))
+            ),
+          update => update
+            .call(sel => sel.transition().duration(TRANSITION_MS)
+              .attr('x',      d => hComputeX(d, colorKey, xScale))
+              .attr('y',      d => hComputeY(d.data.x, colorIdx, yScale, yInner))
+              .attr('width',  d => hComputeWidth(d, colorKey, xScale))
+              .attr('height', hComputeHeight(colorIdx, yScale, yInner))
+            ),
+          exit => exit.transition().duration(TRANSITION_MS)
+            .attr('width', 0).remove()
+        )
+        .on('mouseover', function(event, d) {
+          d3.select(this).attr('opacity', 0.8);
+          const val = layout === 'stacked'
+            ? d[1] - d[0]
+            : d.data[colorKey];
+          showTooltip(event, d.data.x, colorKey, val);
+        })
+        .on('mousemove', function(event) {
+          tooltip
+            .style('left', `${event.offsetX + 14}px`)
+            .style('top',  `${event.offsetY - 10}px`);
+        })
+        .on('mouseout', function() {
+          d3.select(this).attr('opacity', 1);
+          hideTooltip();
+        });
+    });
+  }
+
+  // ── Vertical helpers ──────────────────────────────────────────────────────
+  function vComputeX(xCat, colorIdx, xScale, xInner) {
+    if (layout === 'stacked' || layout === 'pct') {
       return xScale(xCat);
     } else {
       return xScale(xCat) + xInner(colorKeys[colorIdx]);
     }
   }
 
-  function computeWidth(colorIdx) {
-    if (mode === 'stacked') {
+  function vComputeWidth(colorIdx, xScale, xInner) {
+    if (layout === 'stacked' || layout === 'pct') {
       return xScale.bandwidth();
     } else {
       return xInner.bandwidth();
     }
   }
 
-  function computeY(d, colorKey) {
-    if (mode === 'stacked') {
+  function vComputeY(d, colorKey, yScale) {
+    if (layout === 'stacked' || layout === 'pct') {
       return yScale(d[1]);
     } else {
       return yScale(d.data[colorKey]);
     }
   }
 
-  function computeHeight(d, colorKey) {
-    if (mode === 'stacked') {
+  function vComputeHeight(d, colorKey, h, yScale) {
+    if (layout === 'stacked' || layout === 'pct') {
       return Math.max(0, yScale(d[0]) - yScale(d[1]));
     } else {
       return Math.max(0, h - yScale(d.data[colorKey]));
+    }
+  }
+
+  // ── Horizontal helpers ────────────────────────────────────────────────────
+  function hComputeX(d, colorKey, xScale) {
+    if (layout === 'stacked') {
+      return xScale(d[0]);
+    } else {
+      return 0;
+    }
+  }
+
+  function hComputeWidth(d, colorKey, xScale) {
+    if (layout === 'stacked') {
+      return Math.max(0, xScale(d[1]) - xScale(d[0]));
+    } else {
+      return Math.max(0, xScale(d.data[colorKey]));
+    }
+  }
+
+  function hComputeY(xCat, colorIdx, yScale, yInner) {
+    if (layout === 'stacked') {
+      return yScale(xCat);
+    } else {
+      return yScale(xCat) + yInner(colorKeys[colorIdx]);
+    }
+  }
+
+  function hComputeHeight(colorIdx, yScale, yInner) {
+    if (layout === 'stacked') {
+      return yScale.bandwidth();
+    } else {
+      return yInner.bandwidth();
     }
   }
 }
