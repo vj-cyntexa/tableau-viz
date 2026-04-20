@@ -87,3 +87,27 @@ Use these to inspect the live Tableau Cloud environment:
 - [TSC Docs](https://tableau.github.io/server-client-python/docs/)
 - [Hyper API Docs](https://tableau.github.io/hyper-db/docs/)
 - [Extensions API Docs](https://tableau.github.io/extensions-api/docs/)
+
+## Extensions
+
+### multi-line-chart
+
+| Item | Value |
+|---|---|
+| Folder | `extensions/multi-line-chart/` |
+| Production URL | `https://vj-cyntexa.github.io/tableau-viz/extensions/multi-line-chart/index.html` |
+| Production TREX | `extensions/multi-line-chart/multi-line-chart.trex` |
+| Local dev TREX | `extensions/multi-line-chart/multi-line-chart-local.trex` |
+| Test page | `https://vj-cyntexa.github.io/tableau-viz/extensions/multi-line-chart/test.html` |
+
+**Encodings:**
+- `x` — Date dimension (1 field, required)
+- `y` — Numeric measure (1 field, required)
+- `color` — Dimension for line grouping / series (1 field, optional)
+
+**Dev workflow:**
+1. `python3 -m http.server 8080` from repo root
+2. Open `http://localhost:8080/extensions/multi-line-chart/test.html` to test in browser
+3. In Tableau Desktop: Marks card → Viz Extensions → Access Local → `multi-line-chart-local.trex`
+
+**To add a new extension:** copy the `multi-line-chart/` folder, update IDs in `.trex`, update the URL, and add it to this section.
