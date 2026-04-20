@@ -30,7 +30,7 @@
 - [x] Task 3 — D3 chart logic (`chart.js`)
 - [x] Task 4 — Standalone test page (`test.html`)
 - [x] Task 5 — README (`README.md`)
-- [ ] Task 6 — GitHub Pages, CLAUDE.md update, final push
+- [x] Task 6 — GitHub Pages, CLAUDE.md update, final push
 
 ---
 
@@ -1046,13 +1046,13 @@ git commit -m "docs: add README for bar-line-combo extension"
 
 ## Task 6: GitHub Pages, CLAUDE.md Update, Final Push
 
-- [ ] **Step 6.1: Push all commits to remote**
+- [x] **Step 6.1: Push all commits to remote**
 
 ```bash
 git pull --rebase origin master && git push origin master
 ```
 
-- [ ] **Step 6.2: Confirm GitHub Pages is enabled**
+- [x] **Step 6.2: Confirm GitHub Pages is enabled**
 
 ```bash
 gh api repos/vj-cyntexa/tableau-viz/pages \
@@ -1071,7 +1071,7 @@ gh api repos/vj-cyntexa/tableau-viz/pages \
   -f "source[path]=/"
 ```
 
-- [ ] **Step 6.3: Verify Pages URL after build**
+- [x] **Step 6.3: Verify Pages URL after build**
 
 Wait 30–90 seconds for Pages to build, then open:
 
@@ -1079,7 +1079,7 @@ Wait 30–90 seconds for Pages to build, then open:
 
 Expected: Same chart as the local test. If you see a 404, wait another minute and refresh.
 
-- [ ] **Step 6.4: Add bar-line-combo section to CLAUDE.md**
+- [x] **Step 6.4: Add bar-line-combo section to CLAUDE.md**
 
 Add the following block at the end of the `## Extensions` section in `CLAUDE.md`:
 
@@ -1107,7 +1107,7 @@ Add the following block at the end of the `## Extensions` section in `CLAUDE.md`
 3. In Tableau Desktop: Marks card → Viz Extensions → Access Local → `bar-line-combo-local.trex`
 ```
 
-- [ ] **Step 6.5: Commit and push CLAUDE.md update**
+- [x] **Step 6.5: Commit and push CLAUDE.md update**
 
 ```bash
 git add CLAUDE.md

@@ -16,7 +16,7 @@
 - [x] Task 3: chart.js
 - [x] Task 4: test.html
 - [x] Task 5: README.md
-- [x] Task 6: Push all
+- [ ] Task 6: Push all
 
 ---
 
@@ -750,7 +750,7 @@ Create `extensions/venn-diagram/test.html`:
 
 **File:** `extensions/venn-diagram/README.md`
 
-- [x] **Step 5.1: Create README**
+- [ ] **Step 5.1: Create README**
 
 Create `extensions/venn-diagram/README.md`:
 
@@ -847,7 +847,7 @@ open http://localhost:8080/extensions/venn-diagram/test.html
 
 ## Task 6: Push All
 
-- [x] **Step 6.1: Create the extensions/venn-diagram directory and add all files**
+- [ ] **Step 6.1: Create the extensions/venn-diagram directory and add all files**
 
 ```bash
 mkdir -p extensions/venn-diagram
@@ -855,7 +855,7 @@ mkdir -p extensions/venn-diagram
 
 Then create all five files listed in the File Map above (Tasks 1–5).
 
-- [x] **Step 6.2: Stage and commit**
+- [ ] **Step 6.2: Stage and commit**
 
 ```bash
 git add extensions/venn-diagram/venn-diagram.trex \
@@ -867,7 +867,7 @@ git add extensions/venn-diagram/venn-diagram.trex \
 git commit -m "feat: venn-diagram viz extension (loyalty customer overlap)"
 ```
 
-- [x] **Step 6.3: Push to origin master**
+- [ ] **Step 6.3: Push to origin master**
 
 ```bash
 git pull --rebase origin master && git push origin master

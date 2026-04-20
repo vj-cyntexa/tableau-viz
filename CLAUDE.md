@@ -114,3 +114,25 @@ Use these to inspect the live Tableau Cloud environment:
 **To add a new extension:** copy the `multi-line-chart/` folder, update IDs in `.trex`, update the URL, and add it to this section.
 
 **Extension README convention:** Every extension folder must have a `README.md` documenting: live URLs, encoding slots, what is and isn't configurable from Tableau's UI, file descriptions, local dev steps, and Tableau Cloud allowlist instructions. When you modify an extension (new encodings, changed URLs, new files), update its `README.md` in the same commit.
+
+### bar-line-combo
+
+| Item | Value |
+|---|---|
+| Folder | `extensions/bar-line-combo/` |
+| Production URL | `https://vj-cyntexa.github.io/tableau-viz/extensions/bar-line-combo/index.html` |
+| Production TREX | `extensions/bar-line-combo/bar-line-combo.trex` |
+| Local dev TREX | `extensions/bar-line-combo/bar-line-combo-local.trex` |
+| Test page | `https://vj-cyntexa.github.io/tableau-viz/extensions/bar-line-combo/test.html` |
+| README | `extensions/bar-line-combo/README.md` |
+
+**Encodings:**
+- `x` — Date or categorical dimension (1 field, required)
+- `bar` — Primary numeric measure for bars, left Y axis (1 field, required)
+- `line` — Secondary numeric measure for line overlay, right Y axis (1 field, required)
+- `color` — Optional dimension for stacked bar grouping (1 field, optional)
+
+**Dev workflow:**
+1. `python3 -m http.server 8080` from repo root
+2. Open `http://localhost:8080/extensions/bar-line-combo/test.html` to test in browser
+3. In Tableau Desktop: Marks card → Viz Extensions → Access Local → `bar-line-combo-local.trex`
