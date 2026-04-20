@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.networkgraph" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Force-directed network graph for product co-purchase analysis built with D3.js v7</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>https://vj-cyntexa.github.io/tableau-viz/extensions/network-graph/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="source">
+      <display-name resource-id="source_label">Source Node</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="target">
+      <display-name resource-id="target_label">Target Node</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="weight">
+      <display-name resource-id="weight_label">Relationship Strength</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="node_size">
+      <display-name resource-id="node_size_label">Node Size (optional)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Network Graph</text></resource>
+    <resource id="source_label"><text locale="en_US">Source Node</text></resource>
+    <resource id="target_label"><text locale="en_US">Target Node</text></resource>
+    <resource id="weight_label"><text locale="en_US">Relationship Strength</text></resource>
+    <resource id="node_size_label"><text locale="en_US">Node Size (optional)</text></resource>
+  </resources>
+</manifest>
