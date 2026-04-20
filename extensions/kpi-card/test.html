@@ -23,77 +23,96 @@
       font-weight: 500;
     }
 
-    /* ── Copied from index.html to keep test standalone ─────────────────── */
-    #kpi-card {
-      position: relative;
-      background: #ffffff;
+    /* ── Styles matching chart.js class names ─────────────────────────── */
+    #card {
+      background: #fff;
       border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
-      padding: 32px 36px 28px;
-      min-width: 240px;
-      max-width: 420px;
-      width: 90vw;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 28px 32px;
+      width: min(340px, 90vw);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
       text-align: center;
     }
-    #mode-buttons {
-      position: absolute;
-      top: 12px;
-      right: 12px;
+
+    #mode-bar {
+      position: fixed;
+      top: 10px;
+      right: 10px;
       display: flex;
       gap: 4px;
+      z-index: 10;
     }
     .mode-btn {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      padding: 3px 8px;
-      border-radius: 20px;
-      border: 1.5px solid #c9cdd4;
-      background: transparent;
-      color: #7a828e;
+      padding: 4px 10px;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-      line-height: 1.5;
+      color: #555;
     }
-    .mode-btn:hover { border-color: #3498db; color: #3498db; }
-    .mode-btn.active { background: #3498db; border-color: #3498db; color: #ffffff; }
-    .kpi-label {
+    .mode-btn.active {
+      background: #3498db;
+      color: #fff;
+      border-color: #3498db;
+    }
+
+    .card-label {
       font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-weight: 500;
+      color: #888;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: #9198a1;
-      margin-bottom: 10px;
+      width: 100%;
     }
-    .kpi-value {
-      font-size: 48px;
+
+    .card-value {
+      font-size: 42px;
       font-weight: 700;
+      color: #1a1a2e;
       line-height: 1.1;
-      color: #1a2130;
-      letter-spacing: -0.02em;
+      width: 100%;
     }
-    .kpi-comparison-row {
-      margin-top: 10px;
+
+    .card-comparison {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 14px;
-      color: #555e6a;
+      color: #555;
+      width: 100%;
     }
-    .kpi-prev-value { font-weight: 500; }
-    .kpi-delta { font-weight: 700; font-size: 15px; }
-    .kpi-delta.positive { color: #27ae60; }
-    .kpi-delta.negative { color: #e74c3c; }
-    .kpi-delta.neutral  { color: #3498db; }
-    #kpi-card.trend-up   { background: linear-gradient(135deg, #eafaf1 0%, #d5f5e3 100%); }
-    #kpi-card.trend-down { background: linear-gradient(135deg, #fef9f9 0%, #fde8e8 100%); }
-    .kpi-trend-arrow { font-size: 28px; margin-top: 6px; }
-    .kpi-trend-arrow.up   { color: #27ae60; }
-    .kpi-trend-arrow.down { color: #e74c3c; }
-    .kpi-sparkline { margin-top: 16px; display: flex; justify-content: center; }
-    .kpi-sparkline svg { display: block; }
-    .kpi-hint { margin-top: 10px; font-size: 11px; color: #b0b8c1; font-style: italic; }
+
+    .card-delta {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .card-delta.positive { color: #27ae60; }
+    .card-delta.negative { color: #e74c3c; }
+    .card-delta.neutral  { color: #3498db; }
+
+    .card-trend-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .card-trend-badge.up   { background: #eafaf1; color: #27ae60; }
+    .card-trend-badge.down { background: #fdf0ef; color: #e74c3c; }
+
+    .card-sparkline {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .card-hint { margin-top: 10px; font-size: 11px; color: #b0b8c1; font-style: italic; }
     #error { display: none; }
     #error:not(:empty) {
       display: block;
@@ -112,14 +131,13 @@
 <body>
   <h2>KPI Card — Browser Test (no Tableau required)</h2>
 
-  <div id="kpi-card">
-    <div id="mode-buttons">
+  <div id="card">
+    <div id="mode-bar">
       <button class="mode-btn active" data-mode="simple">Simple</button>
       <button class="mode-btn" data-mode="comparison">Comparison</button>
       <button class="mode-btn" data-mode="trend">Trend</button>
       <button class="mode-btn" data-mode="sparkline">Sparkline</button>
     </div>
-    <div id="card-body"></div>
   </div>
   <div id="error"></div>
 
