@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Treemap — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 12px; }
+    #toolbar {
+      display: flex; align-items: center; gap: 12px; padding: 6px 12px;
+      background: #f8f8f8; border: 1px solid #e0e0e0; border-bottom: none;
+      border-radius: 8px 8px 0 0; flex-wrap: wrap;
+    }
+    #toolbar .toolbar-group { display: flex; align-items: center; gap: 4px; }
+    #toolbar label { font-size: 11px; color: #555; font-weight: 600; text-transform: uppercase; margin-right: 4px; }
+    #toolbar button {
+      font-size: 11px; padding: 3px 9px; border: 1px solid #ccc;
+      border-radius: 4px; background: #fff; color: #333; cursor: pointer;
+    }
+    #toolbar button.active { background: #4e79a7; color: #fff; border-color: #4e79a7; }
+    #toolbar .sep { width: 1px; height: 20px; background: #ddd; margin: 0 4px; }
+    #chart-wrapper {
+      width: 100%; height: calc(100vh - 120px);
+      background: #fff; border: 1px solid #ddd; border-radius: 0 0 8px 8px;
+      overflow: hidden; position: relative;
+    }
+    #chart { width: 100%; height: 100%; position: relative; }
+    #error {
+      display: none; position: fixed; bottom: 10px; left: 50%;
+      transform: translateX(-50%); background: #fff0f0; color: #c0392b;
+      border: 1px solid #f5c6c6; border-radius: 6px; padding: 8px 16px;
+      font-size: 13px; z-index: 100; max-width: 80vw; text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+    .node { cursor: default; }
+    .node-rect { stroke: #fff; stroke-width: 2; }
+    .node-label { font-size: 11px; fill: #fff; pointer-events: none; dominant-baseline: middle; }
+    .parent-label { font-size: 12px; font-weight: 600; fill: rgba(0,0,0,0.55); pointer-events: none; }
+    .tooltip {
+      position: absolute; background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd; border-radius: 6px; padding: 9px 13px;
+      font-size: 12px; line-height: 1.7; pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10); max-width: 240px; z-index: 50;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h2>Treemap — Browser Test (no Tableau required)</h2>
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <label>Tiling</label>
+      <button class="tile-btn active" data-tile="squarify">Squarify</button>
+      <button class="tile-btn" data-tile="slice">Slice</button>
+      <button class="tile-btn" data-tile="dice">Dice</button>
+      <button class="tile-btn" data-tile="sliceDice">SliceDice</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Color</label>
+      <button class="color-btn active" data-color="category">By Category</button>
+      <button class="color-btn" data-color="value">By Value</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Parent Labels</label>
+      <button id="btn-parent-labels" class="active">Show</button>
+    </div>
+  </div>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    // 15 loyalty segment/tier combinations across 4 parent tiers
+    // size = customer count, color = avg CLV (Customer Lifetime Value in $)
+    const MOCK_DATA = [
+      // Platinum tier
+      { parent: 'Platinum', label: 'Platinum Champions',  size: 850,  color: 4200 },
+      { parent: 'Platinum', label: 'Platinum Loyalists',  size: 1200, color: 3600 },
+      { parent: 'Platinum', label: 'Platinum At-Risk',    size: 340,  color: 2800 },
+      { parent: 'Platinum', label: 'Platinum New',        size: 190,  color: 1900 },
+
+      // Gold tier
+      { parent: 'Gold',     label: 'Gold Champions',      size: 2200, color: 2100 },
+      { parent: 'Gold',     label: 'Gold Loyalists',      size: 3100, color: 1800 },
+      { parent: 'Gold',     label: 'Gold At-Risk',        size: 980,  color: 1400 },
+      { parent: 'Gold',     label: 'Gold Hibernating',    size: 620,  color: 900  },
+
+      // Silver tier
+      { parent: 'Silver',   label: 'Silver Active',       size: 5400, color: 750  },
+      { parent: 'Silver',   label: 'Silver Occasional',   size: 3800, color: 480  },
+      { parent: 'Silver',   label: 'Silver At-Risk',      size: 2100, color: 320  },
+      { parent: 'Silver',   label: 'Silver New',          size: 1600, color: 210  },
+
+      // Bronze tier
+      { parent: 'Bronze',   label: 'Bronze Active',       size: 8200, color: 280  },
+      { parent: 'Bronze',   label: 'Bronze Occasional',   size: 6100, color: 140  },
+      { parent: 'Bronze',   label: 'Bronze Lost',         size: 4300, color: 60   },
+    ];
+
+    const columns = [
+      { fieldName: 'Segment Name',  index: 0, dataType: 'string' },
+      { fieldName: 'Tier',          index: 1, dataType: 'string' },
+      { fieldName: 'Customer Count', index: 2, dataType: 'float' },
+      { fieldName: 'Avg CLV',       index: 3, dataType: 'float' },
+    ];
+
+    const rows = MOCK_DATA.map(d => [
+      { value: d.label  },
+      { value: d.parent },
+      { value: String(d.size)  },
+      { value: String(d.color) },
+    ]);
+
+    const dataTable = { columns, data: rows };
+    const vizSpec = {
+      marksSpecificationCollection: [{
+        encodingCollection: [
+          { id: 'label',  fieldCollection: [{ fieldName: 'Segment Name'   }] },
+          { id: 'parent', fieldCollection: [{ fieldName: 'Tier'           }] },
+          { id: 'size',   fieldCollection: [{ fieldName: 'Customer Count' }] },
+          { id: 'color',  fieldCollection: [{ fieldName: 'Avg CLV'        }] },
+        ],
+      }],
+    };
+
+    window.tableau = {
+      TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+      extensions: {
+        initializeAsync() { return Promise.resolve(); },
+        worksheetContent: {
+          worksheet: {
+            addEventListener() {},
+            getVisualSpecificationAsync() { return Promise.resolve(vizSpec); },
+            getSummaryDataReaderAsync() {
+              return Promise.resolve({
+                getAllPagesAsync() { return Promise.resolve(dataTable); },
+                releaseAsync()    { return Promise.resolve(); },
+              });
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <script src="chart.js"></script>
+  <script>
+    document.querySelectorAll('.tile-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.TREEMAP_STATE.tiling = btn.dataset.tile;
+        window.TREEMAP_STATE.redraw();
+      });
+    });
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.TREEMAP_STATE.colorMode = btn.dataset.color;
+        window.TREEMAP_STATE.redraw();
+      });
+    });
+    document.getElementById('btn-parent-labels').addEventListener('click', function () {
+      window.TREEMAP_STATE.showParentLabels = !window.TREEMAP_STATE.showParentLabels;
+      this.textContent = window.TREEMAP_STATE.showParentLabels ? 'Show' : 'Hide';
+      this.classList.toggle('active', window.TREEMAP_STATE.showParentLabels);
+      window.TREEMAP_STATE.redraw();
+    });
+  </script>
+</body>
+</html>
