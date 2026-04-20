@@ -28,7 +28,7 @@
 - [x] Task 1 — Folder and TREX manifests
 - [x] Task 2 — HTML shell (`index.html`)
 - [x] Task 3 — D3 chart logic (`chart.js`)
-- [ ] Task 4 — Standalone test page (`test.html`)
+- [x] Task 4 — Standalone test page (`test.html`)
 - [ ] Task 5 — README (`README.md`)
 - [ ] Task 6 — GitHub Pages, CLAUDE.md update, final push
 
@@ -776,7 +776,7 @@ Mock data: 12 months of monthly revenue (bars, ~$80k–$200k) + growth rate % (l
 **Files:**
 - Create: `extensions/bar-line-combo/test.html`
 
-- [ ] **Step 4.1: Write test.html**
+- [x] **Step 4.1: Write test.html**
 
 Create `extensions/bar-line-combo/test.html`:
 
@@ -931,7 +931,7 @@ Create `extensions/bar-line-combo/test.html`:
 </html>
 ```
 
-- [ ] **Step 4.2: Open test.html in a browser and verify**
+- [x] **Step 4.2: Open test.html in a browser and verify**
 
 Run a local server from the repo root:
 ```bash
@@ -942,7 +942,7 @@ Open: `http://localhost:8080/extensions/bar-line-combo/test.html`
 
 Expected: 12 monthly bars (steel blue, taller for high-revenue months) with an orange line overlay showing growth rate %, which dips below zero for months with negative growth. Crosshair and tooltip appear on hover. Legend shows "Revenue (bars)" with a blue rect and "Growth Rate % (line)" with an orange line icon. Right Y axis labels are orange.
 
-- [ ] **Step 4.3: Commit**
+- [x] **Step 4.3: Commit**
 
 ```bash
 git add extensions/bar-line-combo/test.html

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Bar-Line Combo — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+    }
+    h2 {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+    #chart-wrapper {
+      width: 100%;
+      height: calc(100vh - 60px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    #chart { width: 100%; height: 100%; }
+    #error { display: none; }
+    #error:not(:empty) {
+      display: block;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+    /* Duplicate chart CSS from index.html */
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+    .axis-right text { fill: #e67e22; }
+    .axis-right .domain { stroke: #e67e22; opacity: 0.5; }
+    .axis-right .tick line { stroke: #e67e22; opacity: 0.4; }
+    .bar { shape-rendering: crispEdges; }
+    .combo-line { fill: none; stroke: #e67e22; stroke-width: 2.5px; }
+    .crosshair { stroke: #999; stroke-width: 1px; stroke-dasharray: 4 3; pointer-events: none; }
+    .tooltip {
+      position: absolute;
+      background: rgba(255,255,255,.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,.10);
+      max-width: 240px;
+    }
+    .tooltip .tt-label { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+    .legend text { font-size: 12px; fill: #444; }
+  </style>
+</head>
+<body>
+  <h2>Bar-Line Combo Chart — Browser Test (no Tableau required)</h2>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+
+  <script>
+  // ─── Mock data: 12 months, Revenue (bars) + Growth Rate % (line) ──────────
+  function generateMockData() {
+    const months = [
+      '2024-01-01','2024-02-01','2024-03-01','2024-04-01',
+      '2024-05-01','2024-06-01','2024-07-01','2024-08-01',
+      '2024-09-01','2024-10-01','2024-11-01','2024-12-01',
+    ];
+
+    // Simulate revenue with seasonal variation ($80k–$200k)
+    const revenues = [
+      98000, 112000, 134000, 145000,
+      162000, 180000, 175000, 168000,
+      155000, 143000, 158000, 195000,
+    ];
+
+    // Growth rate % vs prior month (can be negative)
+    // First month has no prior — set to 0
+    const growthRates = revenues.map((rev, i) => {
+      if (i === 0) return 0;
+      return +((rev - revenues[i - 1]) / revenues[i - 1] * 100).toFixed(1);
+    });
+    // growthRates: [0, 14.3, 19.6, 8.2, 11.7, 11.1, -2.8, -4.0, -7.7, -7.7, 10.5, 23.4]
+
+    const rows = months.map((m, i) => [
+      { value: m },
+      { value: String(revenues[i]) },
+      { value: String(growthRates[i]) },
+    ]);
+    return rows;
+  }
+
+  // ─── Mock Tableau Extensions API ──────────────────────────────────────────
+  window.tableau = {
+    TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+    extensions: {
+      initializeAsync: async () => {},
+      worksheetContent: {
+        worksheet: {
+          addEventListener: () => {},
+          getVisualSpecificationAsync: async () => ({
+            marksSpecificationCollection: [{
+              encodingCollection: [
+                { id: 'x',    fieldCollection: [{ fieldName: 'Month' }] },
+                { id: 'bar',  fieldCollection: [{ fieldName: 'Revenue' }] },
+                { id: 'line', fieldCollection: [{ fieldName: 'Growth Rate %' }] },
+                // color encoding intentionally absent — tests single-series bar path
+              ]
+            }]
+          }),
+          getSummaryDataReaderAsync: async () => ({
+            getAllPagesAsync: async () => ({
+              columns: [
+                { fieldName: 'Month',          index: 0, dataType: 'date'  },
+                { fieldName: 'Revenue',        index: 1, dataType: 'float' },
+                { fieldName: 'Growth Rate %',  index: 2, dataType: 'float' },
+              ],
+              data: generateMockData(),
+            }),
+            releaseAsync: async () => {},
+          }),
+        }
+      }
+    }
+  };
+  </script>
+
+  <!-- Load chart logic after mock is defined -->
+  <script src="chart.js"></script>
+</body>
+</html>
