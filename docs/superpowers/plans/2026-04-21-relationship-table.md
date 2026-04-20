@@ -28,7 +28,7 @@
 - [x] Task 1 — TREX Manifests
 - [x] Task 2 — HTML Shell (`index.html`)
 - [x] Task 3 — Chart Logic (`chart.js`)
-- [ ] Task 4 — Test Page (`test.html`)
+- [x] Task 4 — Test Page (`test.html`)
 - [ ] Task 5 — README
 - [ ] Task 6 — Push and verify
 
@@ -800,7 +800,7 @@ The `test.html` mocks the full Tableau Extensions API — customer segment × pr
 **Files:**
 - Create: `extensions/relationship-table/test.html`
 
-- [ ] **Step 4.1: Write test.html**
+- [x] **Step 4.1: Write test.html**
 
 Create `extensions/relationship-table/test.html`:
 
@@ -1026,7 +1026,7 @@ Create `extensions/relationship-table/test.html`:
 </html>
 ```
 
-- [ ] **Step 4.2: Open test.html in a browser and verify**
+- [x] **Step 4.2: Open test.html in a browser and verify**
 
 Run a local server from the repo root:
 ```bash
@@ -1044,7 +1044,7 @@ Expected results:
 - Hovering a cell shows tooltip with exact value, row name, column name, and field names
 - Row headers and column headers sticky when scrolling
 
-- [ ] **Step 4.3: Commit**
+- [x] **Step 4.3: Commit**
 
 ```bash
 git add extensions/relationship-table/test.html

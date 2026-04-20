@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Relationship Table — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    h2 {
+      font-size: 13px;
+      color: #666;
+      flex-shrink: 0;
+    }
+    #frame-wrapper {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Inline styles from index.html — replicated so test.html is self-contained */
+    *, *::before, *::after { box-sizing: border-box; }
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+      flex-shrink: 0;
+    }
+    #toolbar span { font-size: 12px; color: #666; margin-right: 4px; }
+    .mode-btn {
+      padding: 4px 14px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: #fff;
+      color: #333;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .mode-btn.active { background: #1f77b4; border-color: #1f77b4; color: #fff; font-weight: 600; }
+    .mode-btn:hover:not(.active) { background: #f0f4fa; border-color: #1f77b4; }
+    #table-wrapper { flex: 1; overflow: auto; position: relative; }
+    #matrix-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+    #matrix-table th, #matrix-table td {
+      border: 1px solid #e0e0e0;
+      padding: 6px 10px;
+      white-space: nowrap;
+      text-align: right;
+      min-width: 80px;
+    }
+    #matrix-table th.row-header, #matrix-table td.row-header {
+      text-align: left;
+      font-weight: 600;
+      color: #222;
+      background: #f5f5f5;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 160px;
+      border-right: 2px solid #d0d0d0;
+    }
+    #matrix-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: #f5f5f5;
+      font-weight: 600;
+      color: #222;
+      text-align: center;
+      border-bottom: 2px solid #d0d0d0;
+      cursor: pointer;
+      user-select: none;
+    }
+    #matrix-table thead th.row-header { z-index: 4; text-align: left; cursor: default; }
+    .sort-arrow { display: inline-block; margin-left: 4px; opacity: .4; font-size: 10px; }
+    th.sorted-asc .sort-arrow::after  { content: '▲'; opacity: 1; }
+    th.sorted-desc .sort-arrow::after { content: '▼'; opacity: 1; }
+    th:not(.sorted-asc):not(.sorted-desc) .sort-arrow::after { content: '⬍'; }
+    #matrix-table td.data-cell { font-variant-numeric: tabular-nums; cursor: default; }
+    #matrix-table td.data-cell:hover { outline: 2px solid #1f77b4; outline-offset: -2px; }
+    #matrix-table td.total-cell, #matrix-table th.total-header {
+      font-weight: 700;
+      background: #eef2f7 !important;
+      color: #1a3a5c !important;
+      border-left: 2px solid #d0d0d0;
+    }
+    #matrix-table tfoot tr { border-top: 2px solid #d0d0d0; }
+    #matrix-table tfoot td { font-weight: 700; background: #eef2f7; color: #1a3a5c; }
+    body.mode-table #matrix-table td.data-cell { background: #ffffff !important; }
+    #tooltip {
+      position: fixed;
+      background: rgba(255,255,255,.97);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.8;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,.12);
+      max-width: 260px;
+      z-index: 100;
+      display: none;
+    }
+    #tooltip .tt-title { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
+    #tooltip .tt-row, #tooltip .tt-col { color: #555; }
+    #tooltip .tt-val { color: #1f77b4; font-weight: 600; font-size: 14px; }
+    #error { display: none; padding: 10px 16px; background: #fff0f0; color: #c0392b; font-size: 13px; }
+    #error:not(:empty) { display: block; }
+    #empty-state { display: none; }
+  </style>
+</head>
+<body class="mode-heatmap">
+  <h2>Relationship Table — Browser Test (no Tableau required)</h2>
+  <div id="frame-wrapper">
+    <div id="toolbar">
+      <span>Display mode:</span>
+      <button class="mode-btn active" data-mode="heatmap">Heatmap</button>
+      <button class="mode-btn" data-mode="table">Table</button>
+    </div>
+    <div id="error"></div>
+    <div id="table-wrapper">
+      <table id="matrix-table"></table>
+    </div>
+    <div id="empty-state"></div>
+  </div>
+  <div id="tooltip"></div>
+
+  <script>
+  // ─── Mock data: Customer Segment × Product Category (4 × 5) ─────────────────
+  //
+  //                 Tech      Furniture  Office    Apparel   Food
+  // Consumer        312,450   187,230     95,670   143,890   76,540
+  // Corporate       541,320   263,100    218,450    89,330  154,210
+  // Home Office     198,760   112,540    134,220    56,780   43,890
+  // Small Business  424,680   198,320    176,950   112,430   89,650
+
+  const MOCK_ROWS = [
+    ['Consumer',       'Technology',  312450],
+    ['Consumer',       'Furniture',   187230],
+    ['Consumer',       'Office',       95670],
+    ['Consumer',       'Apparel',     143890],
+    ['Consumer',       'Food',         76540],
+    ['Corporate',      'Technology',  541320],
+    ['Corporate',      'Furniture',   263100],
+    ['Corporate',      'Office',      218450],
+    ['Corporate',      'Apparel',      89330],
+    ['Corporate',      'Food',        154210],
+    ['Home Office',    'Technology',  198760],
+    ['Home Office',    'Furniture',   112540],
+    ['Home Office',    'Office',      134220],
+    ['Home Office',    'Apparel',      56780],
+    ['Home Office',    'Food',         43890],
+    ['Small Business', 'Technology',  424680],
+    ['Small Business', 'Furniture',   198320],
+    ['Small Business', 'Office',      176950],
+    ['Small Business', 'Apparel',     112430],
+    ['Small Business', 'Food',         89650],
+  ];
+
+  const MOCK_DATA_TABLE = {
+    columns: [
+      { fieldName: 'Customer Segment', index: 0, dataType: 'string' },
+      { fieldName: 'Product Category', index: 1, dataType: 'string' },
+      { fieldName: 'Revenue',          index: 2, dataType: 'float'  },
+    ],
+    data: MOCK_ROWS.map(([seg, cat, rev]) => [
+      { value: seg },
+      { value: cat },
+      { value: String(rev) },
+    ]),
+  };
+
+  const MOCK_VIZ_SPEC = {
+    marksSpecificationCollection: [{
+      encodingCollection: [
+        { id: 'row',    fieldCollection: [{ fieldName: 'Customer Segment' }] },
+        { id: 'column', fieldCollection: [{ fieldName: 'Product Category' }] },
+        { id: 'value',  fieldCollection: [{ fieldName: 'Revenue' }] },
+      ],
+    }],
+  };
+
+  window.tableau = {
+    TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+    extensions: {
+      initializeAsync: async () => {},
+      worksheetContent: {
+        worksheet: {
+          addEventListener: () => {},
+          getVisualSpecificationAsync: async () => MOCK_VIZ_SPEC,
+          getSummaryDataReaderAsync: async () => ({
+            getAllPagesAsync: async () => MOCK_DATA_TABLE,
+            releaseAsync: async () => {},
+          }),
+        },
+      },
+    },
+  };
+  </script>
+
+  <!-- Load chart logic after mock is defined -->
+  <script src="chart.js"></script>
+</body>
+</html>
