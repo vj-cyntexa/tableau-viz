@@ -1,8 +1,17 @@
 'use strict';
 
-const COLORS = d3.schemeTableau10;
+const PALETTE = d3.schemeTableau10;
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
+let cachedGroups = null;
+const colorState = new Map();
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (cachedGroups) drawAll(cachedGroups);
+  }, 150);
+});
 
 tableau.extensions.initializeAsync().then(() => {
   const ws = tableau.extensions.worksheetContent.worksheet;
@@ -12,8 +21,6 @@ tableau.extensions.initializeAsync().then(() => {
   setError(err.message || String(err));
 });
 
-// ── Main render pipeline ───────────────────────────────────────────────────────
-
 async function render(worksheet) {
   clearError();
   try {
@@ -21,14 +28,12 @@ async function render(worksheet) {
       worksheet.getVisualSpecificationAsync(),
       fetchData(worksheet),
     ]);
-    const vennData = parseTableauData(dataTable, vizSpec);
-    drawChart(vennData);
+    cachedGroups = parseTableauData(dataTable, vizSpec);
+    drawAll(cachedGroups);
   } catch (err) {
     setError(err.message || String(err));
   }
 }
-
-// ── Data fetching ──────────────────────────────────────────────────────────────
 
 async function fetchData(worksheet) {
   const reader = await worksheet.getSummaryDataReaderAsync(undefined, {
@@ -40,8 +45,6 @@ async function fetchData(worksheet) {
     await reader.releaseAsync();
   }
 }
-
-// ── Data parsing ───────────────────────────────────────────────────────────────
 
 function parseTableauData(dataTable, vizSpec) {
   const marksSpec = vizSpec.marksSpecificationCollection[0];
@@ -57,6 +60,7 @@ function parseTableauData(dataTable, vizSpec) {
   const setsField  = fieldName('sets');
   const valueField = fieldName('value');
   const labelField = fieldName('label');
+  const groupField = fieldName('group');
 
   const colIndex = Object.fromEntries(
     dataTable.columns.map(c => [c.fieldName, c.index])
@@ -72,53 +76,113 @@ function parseTableauData(dataTable, vizSpec) {
   const si = colIndex[setsField];
   const vi = colIndex[valueField];
   const li = (labelField && labelField in colIndex) ? colIndex[labelField] : null;
+  const gi = (groupField && groupField in colIndex) ? colIndex[groupField] : null;
 
-  const result = dataTable.data
-    .map(row => {
-      const rawSets = String(row[si].value).trim();
-      const setNames = rawSets.split(',').map(s => s.trim()).filter(Boolean);
-      const size = Number(row[vi].value);
-      // label: use the label field if available, otherwise join set names
-      const label = li !== null
-        ? String(row[li].value).trim()
-        : setNames.join(' ∩ ');
-      return { sets: setNames, size, label };
-    })
-    .filter(d => d.sets.length > 0 && !Number.isNaN(d.size));
+  const groups = new Map();
 
-  if (!result.length) {
+  for (const row of dataTable.data) {
+    const rawSets = String(row[si].value).trim();
+    const setNames = rawSets.split(',').map(s => s.trim()).filter(Boolean);
+    const size = Number(row[vi].value);
+    if (!setNames.length || Number.isNaN(size)) continue;
+
+    const label = li !== null
+      ? String(row[li].value).trim()
+      : setNames.join(' ∩ ');
+
+    const groupName = gi !== null ? String(row[gi].value).trim() : '__all__';
+
+    if (!groups.has(groupName)) groups.set(groupName, []);
+    groups.get(groupName).push({ sets: setNames, size, label });
+  }
+
+  if (!groups.size) {
     throw new Error('No valid rows found. Check field types on the encoding slots.');
   }
 
-  return result;
+  return groups;
 }
 
-// ── Chart rendering ────────────────────────────────────────────────────────────
-
-function drawChart(vennData) {
-  const container = document.getElementById('chart');
-  const W = container.clientWidth;
-  const H = container.clientHeight;
-
-  // Clear previous render
-  d3.select(container).selectAll('svg').remove();
-
-  if (!vennData.length) {
-    container.textContent = 'No data.';
-    return;
+function drawAll(groups) {
+  const allSetNames = [];
+  const seen = new Set();
+  for (const rows of groups.values()) {
+    for (const row of rows) {
+      for (const name of row.sets) {
+        if (!seen.has(name)) {
+          seen.add(name);
+          allSetNames.push(name);
+        }
+      }
+    }
   }
 
-  // Collect unique singleton set names for color assignment
-  const singletonNames = vennData
-    .filter(d => d.sets.length === 1)
-    .map(d => d.sets[0]);
+  let paletteIdx = 0;
+  for (const name of allSetNames) {
+    if (!colorState.has(name)) {
+      colorState.set(name, PALETTE[paletteIdx % PALETTE.length]);
+      paletteIdx++;
+    }
+  }
+  for (const name of colorState.keys()) {
+    if (!seen.has(name)) colorState.delete(name);
+  }
 
-  const colorScale = d3.scaleOrdinal()
-    .domain(singletonNames)
-    .range(COLORS);
+  const toolbar = document.getElementById('toolbar');
+  toolbar.innerHTML = '';
 
-  // Build the venn.js diagram
-  const chart = venn.VennDiagram()
+  for (const name of allSetNames) {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = colorState.get(name);
+    input.dataset.setName = name;
+
+    input.addEventListener('input', (e) => {
+      colorState.set(e.target.dataset.setName, e.target.value);
+      if (cachedGroups) drawAll(cachedGroups);
+    });
+
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(name));
+    toolbar.appendChild(label);
+  }
+
+  const colorMap = new Map(colorState);
+
+  const panelsEl = document.getElementById('panels');
+  panelsEl.innerHTML = '';
+
+  for (const [groupName, vennData] of groups) {
+    const panel = document.createElement('div');
+    panel.className = 'venn-panel';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'panel-title';
+    if (groupName !== '__all__') {
+      titleEl.textContent = groupName;
+    }
+
+    const chartEl = document.createElement('div');
+    chartEl.className = 'panel-chart';
+
+    panel.appendChild(titleEl);
+    panel.appendChild(chartEl);
+    panelsEl.appendChild(panel);
+
+    renderPanel(groupName, vennData, chartEl, colorMap);
+  }
+}
+
+function renderPanel(groupName, vennData, container, colorMap) {
+  const W = container.clientWidth  || 400;
+  const H = container.clientHeight || 300;
+
+  d3.select(container).selectAll('svg').remove();
+
+  if (!vennData.length) return;
+
+  const vennChart = venn.VennDiagram()
     .width(W)
     .height(H);
 
@@ -127,45 +191,31 @@ function drawChart(vennData) {
     .attr('width', W)
     .attr('height', H);
 
-  // venn.js needs a <g> or a selection to render into
   const vennGroup = svg.append('g');
-
-  vennGroup.datum(vennData).call(chart);
-
-  // ── Apply colors to circle paths ──────────────────────────────────────────
+  vennGroup.datum(vennData).call(vennChart);
 
   vennGroup.selectAll('g.venn-circle')
     .each(function (d) {
-      const setName = d.sets[0]; // singletons only
-      const color = colorScale(setName);
+      const color = colorMap.get(d.sets[0]) || '#888888';
       d3.select(this).select('path')
         .style('fill', color)
         .style('stroke', color);
     });
 
-  // Intersection fills: blend the colors of the intersecting sets
   vennGroup.selectAll('g.venn-intersection')
     .each(function (d) {
-      // Average the RGB components of each constituent set's color
-      const colors = d.sets.map(name => d3.color(colorScale(name)));
+      const colors = d.sets.map(name => d3.color(colorMap.get(name) || '#888888'));
       const blended = blendColors(colors);
       d3.select(this).select('path')
         .style('fill', blended)
         .style('stroke', 'none');
     });
 
-  // ── Replace built-in labels with name + count labels ─────────────────────
-
-  // venn.js renders a <text> inside each group. Remove it and add two tspans.
   vennGroup.selectAll('g.venn-circle, g.venn-intersection')
     .each(function (d) {
       const g = d3.select(this);
-      // Remove the default venn.js text
       g.select('text').remove();
 
-      // Find the centroid of the region from the existing path's bounding box
-      // venn.js positions the text; we reposition after calling .call(chart)
-      // by querying the SVG layout. Re-add our own text.
       const pathNode = g.select('path').node();
       if (!pathNode) return;
       const bbox = pathNode.getBBox();
@@ -177,7 +227,7 @@ function drawChart(vennData) {
 
       const text = g.append('text')
         .attr('x', cx)
-        .attr('y', cy - 6)
+        .attr('y', cy - 8)
         .attr('text-anchor', 'middle')
         .style('pointer-events', 'none');
 
@@ -190,11 +240,9 @@ function drawChart(vennData) {
       text.append('tspan')
         .attr('class', 'venn-label-count')
         .attr('x', cx)
-        .attr('dy', '1.4em')
+        .attr('dy', '1.5em')
         .text(count);
     });
-
-  // ── Tooltip ───────────────────────────────────────────────────────────────
 
   const tooltip = d3.select('#tooltip');
   const fmtNum = d3.format(',');
@@ -211,35 +259,20 @@ function drawChart(vennData) {
         );
     })
     .on('mousemove', function (event) {
-      const [mx, my] = d3.pointer(event, container);
       tooltip
-        .style('left', `${mx + 14}px`)
-        .style('top',  `${my - 10}px`);
+        .style('left', `${event.clientX + 14}px`)
+        .style('top',  `${event.clientY - 10}px`);
     })
     .on('mouseout', function () {
       d3.select(this).classed('hover', false);
       tooltip.style('display', 'none');
     });
-
-  // ── Resize handler ────────────────────────────────────────────────────────
-  // Debounced to avoid excessive redraws
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => drawChart(vennData), 150);
-  });
 }
 
-// ── Color blending helper ──────────────────────────────────────────────────────
-
-/**
- * Blends an array of d3.color objects by averaging their RGB components.
- * Returns a CSS color string.
- */
 function blendColors(colors) {
   const valid = colors.filter(Boolean);
   if (!valid.length) return '#cccccc';
-  const rgb = valid.reduce(
+  const sum = valid.reduce(
     (acc, c) => {
       const r = d3.rgb(c);
       acc.r += r.r;
@@ -250,10 +283,12 @@ function blendColors(colors) {
     { r: 0, g: 0, b: 0 }
   );
   const n = valid.length;
-  return d3.rgb(Math.round(rgb.r / n), Math.round(rgb.g / n), Math.round(rgb.b / n)).toString();
+  return d3.rgb(
+    Math.round(sum.r / n),
+    Math.round(sum.g / n),
+    Math.round(sum.b / n)
+  ).toString();
 }
-
-// ── Error helpers ──────────────────────────────────────────────────────────────
 
 function setError(msg) {
   const el = document.getElementById('error');
