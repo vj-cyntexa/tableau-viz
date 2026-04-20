@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Venn Diagram — Spaced Variation</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/venn.js@0.2.20/build/venn.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .page-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      padding: 10px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .page-header a {
+      font-size: 12px;
+      color: #1f77b4;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .page-header a:hover { text-decoration: underline; }
+
+    #toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 18px;
+      padding: 8px 16px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+
+    #toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #toolbar input[type="color"] {
+      width: 26px;
+      height: 26px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 1px;
+      cursor: pointer;
+      background: none;
+    }
+
+    #chart-wrap {
+      flex: 1;
+      background: #fff;
+      margin: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Circle fills */
+    #chart svg .venn-circle path {
+      fill-opacity: 0.18;
+      stroke-width: 2.5;
+    }
+    #chart svg .venn-circle path:hover,
+    #chart svg .venn-circle.hover path {
+      fill-opacity: 0.38;
+      cursor: pointer;
+    }
+
+    /* Intersection fills */
+    #chart svg .venn-intersection path {
+      fill-opacity: 0;
+    }
+    #chart svg .venn-intersection path:hover,
+    #chart svg .venn-intersection.hover path {
+      fill-opacity: 0.25;
+      cursor: pointer;
+    }
+
+    /* Singleton labels */
+    #chart svg .venn-label-name {
+      font-size: 16px;
+      font-weight: 800;
+      fill: #222;
+      pointer-events: none;
+    }
+    #chart svg .venn-label-count {
+      font-size: 13px;
+      fill: #555;
+      pointer-events: none;
+    }
+
+    /* Intersection count labels */
+    #chart svg .venn-intersect-count {
+      font-size: 12px;
+      font-weight: 600;
+      fill: #333;
+      pointer-events: none;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+      max-width: 240px;
+      display: none;
+      z-index: 999;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 14px; color: #222; margin-bottom: 3px; }
+
+    /* Error */
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+    }
+    #error:not(:empty) { display: block; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    Venn Diagram — Spaced Variation (circles spread apart for clarity)
+    <a href="test.html">← Standard variation</a>
+  </div>
+  <div id="toolbar"><!-- color pickers injected here --></div>
+  <div id="chart-wrap">
+    <div id="chart"></div>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+  <div id="error"></div>
+
+  <script>
+  /* ── Real data (Gold + Silver + Platinum loyalty members) ──────────────── */
+  const REAL_DATA = [
+    { sets: ['Gold'],                  size: 910,  label: 'Gold only'            },
+    { sets: ['Silver'],                size: 1470, label: 'Silver only'          },
+    { sets: ['Platinum'],              size: 575,  label: 'Platinum only'        },
+    { sets: ['Gold',    'Silver'],     size: 340,  label: 'Gold ∩ Silver'        },
+    { sets: ['Gold',    'Platinum'],   size: 175,  label: 'Gold ∩ Platinum'      },
+    { sets: ['Silver',  'Platinum'],   size: 270,  label: 'Silver ∩ Platinum'    },
+    { sets: ['Gold',    'Silver',    'Platinum'], size: 88, label: 'All three'   },
+  ];
+
+  /* ── Layout data: intersections scaled down 6× so circles spread apart ── */
+  const LAYOUT_DATA = REAL_DATA.map(d => ({
+    sets: d.sets,
+    size: d.sets.length === 1 ? d.size : Math.max(10, Math.round(d.size / 6)),
+  }));
+
+  /* ── Real data map for label lookup ──────────────────────────────────────  */
+  const realMap = new Map(
+    REAL_DATA.map(d => [d.sets.slice().sort().join('|'), d])
+  );
+  function realFor(sets) {
+    return realMap.get(sets.slice().sort().join('|')) || null;
+  }
+
+  /* ── Color state ─────────────────────────────────────────────────────────  */
+  const PALETTE = d3.schemeTableau10;
+  const setNames = ['Gold', 'Silver', 'Platinum'];
+  const colorState = new Map([
+    ['Gold',     PALETTE[1]],  // orange-ish
+    ['Silver',   PALETTE[0]],  // blue
+    ['Platinum', PALETTE[6]],  // grey/brown
+  ]);
+
+  /* ── Build toolbar color pickers ─────────────────────────────────────────  */
+  const toolbar = document.getElementById('toolbar');
+  for (const name of setNames) {
+    const lbl = document.createElement('label');
+    const inp = document.createElement('input');
+    inp.type = 'color';
+    inp.value = colorState.get(name);
+    inp.dataset.setName = name;
+    inp.addEventListener('input', e => {
+      colorState.set(e.target.dataset.setName, e.target.value);
+      drawVenn();
+    });
+    lbl.appendChild(inp);
+    lbl.appendChild(document.createTextNode(name));
+    toolbar.appendChild(lbl);
+  }
+
+  /* ── Blend colors for intersections ─────────────────────────────────────  */
+  function blendColors(colors) {
+    const valid = colors.filter(Boolean);
+    if (!valid.length) return '#cccccc';
+    const sum = valid.reduce((acc, c) => {
+      const r = d3.rgb(c); acc.r += r.r; acc.g += r.g; acc.b += r.b; return acc;
+    }, { r:0, g:0, b:0 });
+    const n = valid.length;
+    return d3.rgb(Math.round(sum.r/n), Math.round(sum.g/n), Math.round(sum.b/n)).toString();
+  }
+
+  /* ── Main draw ───────────────────────────────────────────────────────────  */
+  function drawVenn() {
+    const container = document.getElementById('chart');
+    const W = container.clientWidth  || 600;
+    const H = container.clientHeight || 400;
+
+    d3.select(container).selectAll('svg').remove();
+
+    const chart = venn.VennDiagram().width(W).height(H);
+
+    const svg = d3.select(container)
+      .append('svg').attr('width', W).attr('height', H);
+
+    const g = svg.append('g');
+
+    // Use LAYOUT_DATA (scaled-down intersections) for positioning
+    g.datum(LAYOUT_DATA).call(chart);
+
+    /* ── Color circles ─────────────────────────────────────────────────── */
+    g.selectAll('g.venn-circle').each(function(d) {
+      const color = colorState.get(d.sets[0]) || '#888';
+      d3.select(this).select('path').style('fill', color).style('stroke', color);
+    });
+
+    g.selectAll('g.venn-intersection').each(function(d) {
+      const colors = d.sets.map(n => d3.color(colorState.get(n) || '#888'));
+      d3.select(this).select('path')
+        .style('fill', blendColors(colors))
+        .style('stroke', 'none');
+    });
+
+    /* ── Singleton labels: name + REAL count ───────────────────────────── */
+    g.selectAll('g.venn-circle').each(function(d) {
+      const el = d3.select(this);
+      el.select('text').remove();
+      const pathNode = el.select('path').node();
+      if (!pathNode) return;
+      const bb = pathNode.getBBox();
+      const cx = bb.x + bb.width / 2;
+      const cy = bb.y + bb.height / 2;
+      const real = realFor(d.sets);
+      const count = real ? d3.format(',')(real.size) : '';
+
+      const text = el.append('text')
+        .attr('x', cx).attr('y', cy - 8)
+        .attr('text-anchor', 'middle')
+        .style('pointer-events', 'none');
+      text.append('tspan')
+        .attr('class', 'venn-label-name')
+        .attr('x', cx).attr('dy', '0').text(d.sets[0]);
+      text.append('tspan')
+        .attr('class', 'venn-label-count')
+        .attr('x', cx).attr('dy', '1.5em').text(count);
+    });
+
+    /* ── Intersection labels: REAL count only (no jumbled names) ───────── */
+    g.selectAll('g.venn-intersection').each(function(d) {
+      const el = d3.select(this);
+      el.select('text').remove();
+      const pathNode = el.select('path').node();
+      if (!pathNode) return;
+      const bb = pathNode.getBBox();
+      // Only label if region is large enough to read
+      if (bb.height < 20 || bb.width < 24) return;
+      const cx = bb.x + bb.width / 2;
+      const cy = bb.y + bb.height / 2;
+      const real = realFor(d.sets);
+      if (!real) return;
+
+      el.append('text')
+        .attr('x', cx).attr('y', cy)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'venn-intersect-count')
+        .style('pointer-events', 'none')
+        .text(d3.format(',')(real.size));
+    });
+
+    /* ── Tooltip ───────────────────────────────────────────────────────── */
+    const tooltip = d3.select('#tooltip');
+    const fmt = d3.format(',');
+
+    g.selectAll('g.venn-circle, g.venn-intersection')
+      .on('mouseover', function(event, d) {
+        d3.select(this).classed('hover', true);
+        const real = realFor(d.sets);
+        const displayName = real?.label || d.sets.join(' ∩ ');
+        const count = real ? fmt(real.size) : '—';
+        tooltip.style('display','block').html(
+          `<div class="tt-title">${displayName}</div>Members: <b>${count}</b>`
+        );
+      })
+      .on('mousemove', function(event) {
+        tooltip.style('left', `${event.clientX+14}px`).style('top', `${event.clientY-10}px`);
+      })
+      .on('mouseout', function() {
+        d3.select(this).classed('hover', false);
+        tooltip.style('display','none');
+      });
+  }
+
+  /* ── Initial draw + resize ───────────────────────────────────────────── */
+  drawVenn();
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(drawVenn, 150);
+  });
+  </script>
+</body>
+</html>
