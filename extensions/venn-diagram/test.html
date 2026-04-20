@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Venn Diagram — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/venn.js@0.2.20/build/venn.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    #chart-wrapper {
+      width: 100%;
+      height: calc(100vh - 60px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Mirror chart.js styles */
+    #chart svg .venn-circle path {
+      fill-opacity: 0.20;
+      stroke-width: 2;
+    }
+
+    #chart svg .venn-circle path:hover,
+    #chart svg .venn-circle.hover path {
+      fill-opacity: 0.40;
+      cursor: pointer;
+    }
+
+    #chart svg .venn-intersection path {
+      fill-opacity: 0;
+    }
+
+    #chart svg .venn-intersection path:hover,
+    #chart svg .venn-intersection.hover path {
+      fill-opacity: 0.15;
+      cursor: pointer;
+    }
+
+    #chart svg text.venn-label-name {
+      font-size: 14px;
+      font-weight: 600;
+      fill: #333;
+      pointer-events: none;
+    }
+
+    #chart svg text.venn-label-count {
+      font-size: 12px;
+      fill: #555;
+      pointer-events: none;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+      max-width: 240px;
+      display: none;
+    }
+
+    .tooltip .tt-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #222;
+      margin-bottom: 3px;
+    }
+
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+  </style>
+</head>
+<body>
+  <h2>Venn Diagram — Browser Test (no Tableau required)</h2>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div class="tooltip" id="tooltip"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    /* ── Loyalty customer mock data ─────────────────────────────────────────
+     *
+     * 7 regions covering a full 3-set Venn diagram:
+     *   Singletons:   Gold=500, Silver=800, Platinum=300
+     *   Pairwise:     Gold∩Silver=200, Gold∩Platinum=100, Silver∩Platinum=150
+     *   Triple:       Gold∩Silver∩Platinum=50
+     *
+     * Constraints respected: pairwise ≤ min(singleton pair); triple ≤ min(pairwise).
+     */
+    (function () {
+      const columns = [
+        { fieldName: 'Loyalty Segment', index: 0, dataType: 'string' },
+        { fieldName: 'Customer Count',  index: 1, dataType: 'integer' },
+      ];
+
+      const rows = [
+        [{ value: 'Gold'                  }, { value: '500' }],
+        [{ value: 'Silver'                }, { value: '800' }],
+        [{ value: 'Platinum'              }, { value: '300' }],
+        [{ value: 'Gold,Silver'           }, { value: '200' }],
+        [{ value: 'Gold,Platinum'         }, { value: '100' }],
+        [{ value: 'Silver,Platinum'       }, { value: '150' }],
+        [{ value: 'Gold,Silver,Platinum'  }, { value: '50'  }],
+      ];
+
+      const dataTable = { columns, data: rows };
+
+      /* ── vizSpec structure expected by chart.js ──────────────────────── */
+      const vizSpec = {
+        marksSpecificationCollection: [
+          {
+            encodingCollection: [
+              { id: 'sets',  fieldCollection: [{ fieldName: 'Loyalty Segment' }] },
+              { id: 'value', fieldCollection: [{ fieldName: 'Customer Count'  }] },
+              // label encoding is optional; omit to let chart.js fall back to sets
+            ],
+          },
+        ],
+      };
+
+      /* ── window.tableau mock ─────────────────────────────────────────── */
+      window.tableau = {
+        TableauEventType: {
+          SummaryDataChanged: 'summary-data-changed',
+        },
+
+        extensions: {
+          initializeAsync() {
+            return Promise.resolve();
+          },
+
+          worksheetContent: {
+            worksheet: {
+              addEventListener(type, cb) {
+                // no-op: no live Tableau session to subscribe to
+              },
+
+              getVisualSpecificationAsync() {
+                return Promise.resolve(vizSpec);
+              },
+
+              getSummaryDataReaderAsync(/* _pageRowCount, _options */) {
+                return Promise.resolve({
+                  getAllPagesAsync() {
+                    return Promise.resolve(dataTable);
+                  },
+                  releaseAsync() {
+                    return Promise.resolve();
+                  },
+                });
+              },
+            },
+          },
+        },
+      };
+    })();
+  </script>
+  <script src="chart.js"></script>
+</body>
+</html>
