@@ -290,53 +290,78 @@ function renderPanel(groupName, vennData, container, colorMap) {
         .style('stroke', 'none');
     });
 
-  // Singleton circles: name + count
-  vennGroup.selectAll('g.venn-circle')
-    .each(function (d) {
-      const g = d3.select(this);
-      g.select('text').remove();
-      const pathNode = g.select('path').node();
-      if (!pathNode) return;
-      const bbox = pathNode.getBBox();
-      const cx = bbox.x + bbox.width / 2;
-      const cy = bbox.y + bbox.height / 2;
-      const displayName = d.label || d.sets[0];
-      const count = d3.format(',')(d.size);
-      const text = g.append('text')
-        .attr('x', cx).attr('y', cy - 8)
-        .attr('text-anchor', 'middle')
-        .style('pointer-events', 'none');
-      text.append('tspan')
-        .attr('class', 'venn-label-name')
-        .attr('x', cx).attr('dy', '0')
-        .text(displayName);
-      text.append('tspan')
-        .attr('class', 'venn-label-count')
-        .attr('x', cx).attr('dy', '1.5em')
-        .text(count);
-    });
+  // Collect label positions before rendering — avoids z-order issues
+  // (text appended inside each g.venn-circle gets painted over by later circles)
+  const labelItems = [];
 
-  // Intersection regions: count only (name in tooltip)
-  vennGroup.selectAll('g.venn-intersection')
-    .each(function (d) {
-      const g = d3.select(this);
-      g.select('text').remove();
-      const pathNode = g.select('path').node();
-      if (!pathNode) return;
-      const bbox = pathNode.getBBox();
-      if (bbox.height < 22 || bbox.width < 30) return; // too small — tooltip only
-      const cx = bbox.x + bbox.width / 2;
-      const cy = bbox.y + bbox.height / 2;
-      const count = d3.format(',')(d.size);
-      g.append('text')
-        .attr('x', cx).attr('y', cy)
+  vennGroup.selectAll('g.venn-circle').each(function (d) {
+    d3.select(this).select('text').remove();
+    const pathNode = d3.select(this).select('path').node();
+    if (!pathNode) return;
+    const bbox = pathNode.getBBox();
+    labelItems.push({
+      type: 'circle',
+      cx: bbox.x + bbox.width / 2,
+      cy: bbox.y + bbox.height / 2,
+      name: d.label || d.sets[0],
+      count: d.size,
+    });
+  });
+
+  vennGroup.selectAll('g.venn-intersection').each(function (d) {
+    d3.select(this).select('text').remove();
+    const pathNode = d3.select(this).select('path').node();
+    if (!pathNode) return;
+    const bbox = pathNode.getBBox();
+    if (bbox.height < 22 || bbox.width < 30) return;
+    labelItems.push({
+      type: 'intersection',
+      cx: bbox.x + bbox.width / 2,
+      cy: bbox.y + bbox.height / 2,
+      count: d.size,
+    });
+  });
+
+  // Label layer appended AFTER vennGroup — always renders above all paths
+  const labelLayer = svg.append('g')
+    .attr('class', 'label-layer')
+    .style('pointer-events', 'none');
+
+  const fmt = d3.format(',');
+
+  for (const lbl of labelItems) {
+    if (lbl.type === 'circle') {
+      const grp = labelLayer.append('g').attr('transform', `translate(${lbl.cx},${lbl.cy})`);
+      grp.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('y', -8)
+        .attr('class', 'venn-label-name')
+        .call(applyHalo)
+        .text(lbl.name);
+      grp.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('y', 10)
+        .attr('class', 'venn-label-count')
+        .call(applyHalo)
+        .text(fmt(lbl.count));
+    } else {
+      labelLayer.append('text')
+        .attr('x', lbl.cx).attr('y', lbl.cy)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .attr('class', 'venn-label-count')
         .style('font-size', '11px')
-        .style('pointer-events', 'none')
-        .text(count);
-    });
+        .call(applyHalo)
+        .text(fmt(lbl.count));
+    }
+  }
+
+  function applyHalo(sel) {
+    sel.style('paint-order', 'stroke')
+       .style('stroke', 'rgba(255,255,255,0.88)')
+       .style('stroke-width', '4px')
+       .style('stroke-linejoin', 'round');
+  }
 
   const tooltip = d3.select('#tooltip');
   const fmtNum = d3.format(',');
