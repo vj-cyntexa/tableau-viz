@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lollipop Chart — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    h2 {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+      flex: 0 0 auto;
+    }
+    #chart-wrapper {
+      flex: 1 1 auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    /* ── Toolbar (same as index.html) ─────── */
+    #toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 6px 12px;
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      flex-wrap: wrap;
+    }
+    .tb-group { display: flex; align-items: center; gap: 6px; }
+    .tb-label { font-size: 11px; color: #777; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    .btn-group { display: flex; border: 1px solid #d0d0d0; border-radius: 5px; overflow: hidden; }
+    .btn-group button { background: #fff; border: none; border-right: 1px solid #d0d0d0; padding: 3px 10px; font-size: 11px; cursor: pointer; color: #444; transition: background 0.15s, color 0.15s; }
+    .btn-group button:last-child { border-right: none; }
+    .btn-group button.active { background: #1f77b4; color: #fff; }
+    .btn-group button:hover:not(.active) { background: #f0f4f8; }
+    .cb-group { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #555; }
+    .cb-group input[type="checkbox"] { width: 13px; height: 13px; cursor: pointer; accent-color: #1f77b4; }
+    .cb-group input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.4; }
+    .cb-group label { cursor: pointer; white-space: nowrap; }
+    /* ── Chart area ─────────────────────────── */
+    #chart { flex: 1 1 auto; position: relative; overflow: hidden; }
+    /* ── Error banner ────────────────────────── */
+    #error {
+      display: none;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+    }
+    #error:not(:empty) { display: block; }
+    /* ── Chart CSS (mirrors index.html) ──────── */
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+    .stem { stroke-width: 2; }
+    .dot { stroke: #ffffff; stroke-width: 1.5; }
+    .value-label { font-size: 11px; fill: #444; }
+    .benchmark-line { stroke: #e74c3c; stroke-width: 1.5; stroke-dasharray: 6 3; }
+    .benchmark-label { fill: #e74c3c; font-size: 11px; font-weight: 600; }
+    .tooltip {
+      position: absolute;
+      background: rgba(255,255,255,.97);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,.10);
+      max-width: 220px;
+    }
+    .tooltip .tt-label { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+    .legend text { font-size: 12px; fill: #444; }
+  </style>
+</head>
+<body>
+  <h2>Lollipop / Ranking Chart — Browser Test (no Tableau required)</h2>
+  <div id="chart-wrapper">
+    <div id="toolbar">
+      <div class="tb-group">
+        <span class="tb-label">Sort</span>
+        <div class="btn-group" id="sort-group">
+          <button data-sort="desc" class="active">Desc</button>
+          <button data-sort="asc">Asc</button>
+          <button data-sort="data">Data Order</button>
+        </div>
+      </div>
+      <div class="tb-group">
+        <span class="tb-label">Orientation</span>
+        <div class="btn-group" id="orient-group">
+          <button data-orient="horizontal" class="active">Horizontal</button>
+          <button data-orient="vertical">Vertical</button>
+        </div>
+      </div>
+      <div class="tb-group">
+        <div class="cb-group">
+          <input type="checkbox" id="benchmark-toggle" checked>
+          <label for="benchmark-toggle">Benchmark line</label>
+        </div>
+      </div>
+      <div class="tb-group">
+        <div class="cb-group">
+          <input type="checkbox" id="labels-toggle" checked>
+          <label for="labels-toggle">Value labels</label>
+        </div>
+      </div>
+    </div>
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+
+  <script>
+  // ─── Mock data: 12 store locations, redemption rates, 4 regions ─────────────
+  const MOCK_ROWS = [
+    ['Sydney CBD',        'East',  0.891, 0.673],
+    ['Melbourne Central', 'South', 0.856, 0.673],
+    ['Brisbane North',    'North', 0.834, 0.673],
+    ['Perth Westfield',   'West',  0.812, 0.673],
+    ['Adelaide Central',  'South', 0.789, 0.673],
+    ['Sydney Parramatta', 'East',  0.745, 0.673],
+    ['Gold Coast',        'North', 0.723, 0.673],
+    ['Melbourne South',   'South', 0.698, 0.673],
+    ['Canberra',          'East',  0.634, 0.673],
+    ['Darwin',            'North', 0.589, 0.673],
+    ['Hobart',            'South', 0.523, 0.673],
+    ['Alice Springs',     'West',  0.478, 0.673],
+  ];
+
+  const MOCK_COLUMNS = [
+    { fieldName: 'Store',           index: 0 },
+    { fieldName: 'Region',          index: 1 },
+    { fieldName: 'Redemption Rate', index: 2 },
+    { fieldName: 'Benchmark',       index: 3 },
+  ];
+
+  const MOCK_DATA = MOCK_ROWS.map(r => [
+    { value: r[0] },
+    { value: r[1] },
+    { value: String(r[2]) },
+    { value: String(r[3]) },
+  ]);
+
+  // ─── Mock Tableau Extensions API ────────────────────────────────────────────
+  window.tableau = {
+    TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+    extensions: {
+      initializeAsync: async () => {},
+      worksheetContent: {
+        worksheet: {
+          addEventListener: () => {},
+          getVisualSpecificationAsync: async () => ({
+            marksSpecificationCollection: [{
+              encodingCollection: [
+                { id: 'category',  fieldCollection: [{ fieldName: 'Store' }] },
+                { id: 'value',     fieldCollection: [{ fieldName: 'Redemption Rate' }] },
+                { id: 'color',     fieldCollection: [{ fieldName: 'Region' }] },
+                { id: 'benchmark', fieldCollection: [{ fieldName: 'Benchmark' }] },
+              ]
+            }]
+          }),
+          getSummaryDataReaderAsync: async () => ({
+            getAllPagesAsync: async () => ({
+              columns: MOCK_COLUMNS,
+              data: MOCK_DATA,
+            }),
+            releaseAsync: async () => {},
+          }),
+        }
+      }
+    }
+  };
+  </script>
+
+  <!-- Load chart logic after mock is defined -->
+  <script src="chart.js"></script>
+</body>
+</html>
