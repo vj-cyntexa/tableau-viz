@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>KPI Card — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #eef0f3;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px;
+    }
+    h2 {
+      font-size: 13px;
+      color: #7a828e;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    /* ── Copied from index.html to keep test standalone ─────────────────── */
+    #kpi-card {
+      position: relative;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+      padding: 32px 36px 28px;
+      min-width: 240px;
+      max-width: 420px;
+      width: 90vw;
+      text-align: center;
+    }
+    #mode-buttons {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 4px;
+    }
+    .mode-btn {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1.5px solid #c9cdd4;
+      background: transparent;
+      color: #7a828e;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      line-height: 1.5;
+    }
+    .mode-btn:hover { border-color: #3498db; color: #3498db; }
+    .mode-btn.active { background: #3498db; border-color: #3498db; color: #ffffff; }
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9198a1;
+      margin-bottom: 10px;
+    }
+    .kpi-value {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #1a2130;
+      letter-spacing: -0.02em;
+    }
+    .kpi-comparison-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #555e6a;
+    }
+    .kpi-prev-value { font-weight: 500; }
+    .kpi-delta { font-weight: 700; font-size: 15px; }
+    .kpi-delta.positive { color: #27ae60; }
+    .kpi-delta.negative { color: #e74c3c; }
+    .kpi-delta.neutral  { color: #3498db; }
+    #kpi-card.trend-up   { background: linear-gradient(135deg, #eafaf1 0%, #d5f5e3 100%); }
+    #kpi-card.trend-down { background: linear-gradient(135deg, #fef9f9 0%, #fde8e8 100%); }
+    .kpi-trend-arrow { font-size: 28px; margin-top: 6px; }
+    .kpi-trend-arrow.up   { color: #27ae60; }
+    .kpi-trend-arrow.down { color: #e74c3c; }
+    .kpi-sparkline { margin-top: 16px; display: flex; justify-content: center; }
+    .kpi-sparkline svg { display: block; }
+    .kpi-hint { margin-top: 10px; font-size: 11px; color: #b0b8c1; font-style: italic; }
+    #error { display: none; }
+    #error:not(:empty) {
+      display: block;
+      margin-top: 12px;
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 12px;
+      max-width: 420px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>KPI Card — Browser Test (no Tableau required)</h2>
+
+  <div id="kpi-card">
+    <div id="mode-buttons">
+      <button class="mode-btn active" data-mode="simple">Simple</button>
+      <button class="mode-btn" data-mode="comparison">Comparison</button>
+      <button class="mode-btn" data-mode="trend">Trend</button>
+      <button class="mode-btn" data-mode="sparkline">Sparkline</button>
+    </div>
+    <div id="card-body"></div>
+  </div>
+  <div id="error"></div>
+
+  <script>
+  // ─── Mock Tableau Extensions API ────────────────────────────────────────────
+  // Data: 12-month revenue history, current = Dec (1,200,000), prev = Dec prior year (1,050,000)
+  (function buildMock() {
+    // Monthly revenue figures — 12 months of current year (Jan–Dec)
+    const currentYearRevenue = [
+      880000, 910000, 945000, 975000, 1020000, 990000,
+      1050000, 1080000, 1100000, 1130000, 1165000, 1200000,
+    ];
+
+    // Corresponding comparison (previous-year same-month) values
+    const prevYearRevenue = [
+      760000, 790000, 820000, 840000, 870000, 855000,
+      895000, 920000, 940000, 970000, 1010000, 1050000,
+    ];
+
+    const rows = currentYearRevenue.map((rev, i) => {
+      const d = new Date(2024, i, 1);
+      const dateStr = d.toISOString().split('T')[0];
+      return [
+        { value: 'Total Revenue' },      // label col 0
+        { value: String(rev) },          // value col 1
+        { value: String(prevYearRevenue[i]) }, // comparison col 2
+        { value: String(rev) },          // history col 3 (same measure as value here)
+        { value: dateStr },              // date col 4
+      ];
+    });
+
+    window.tableau = {
+      TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+      extensions: {
+        initializeAsync: async () => {},
+        worksheetContent: {
+          worksheet: {
+            addEventListener: () => {},
+            getVisualSpecificationAsync: async () => ({
+              marksSpecificationCollection: [{
+                encodingCollection: [
+                  { id: 'value',      fieldCollection: [{ fieldName: 'Revenue' }] },
+                  { id: 'label',      fieldCollection: [{ fieldName: 'Metric Name' }] },
+                  { id: 'comparison', fieldCollection: [{ fieldName: 'Prev Revenue' }] },
+                  { id: 'history',    fieldCollection: [{ fieldName: 'Revenue History' }] },
+                  { id: 'date',       fieldCollection: [{ fieldName: 'Month' }] },
+                ],
+              }],
+            }),
+            getSummaryDataReaderAsync: async () => ({
+              getAllPagesAsync: async () => ({
+                columns: [
+                  { fieldName: 'Metric Name',      index: 0, dataType: 'string' },
+                  { fieldName: 'Revenue',          index: 1, dataType: 'float'  },
+                  { fieldName: 'Prev Revenue',     index: 2, dataType: 'float'  },
+                  { fieldName: 'Revenue History',  index: 3, dataType: 'float'  },
+                  { fieldName: 'Month',            index: 4, dataType: 'date'   },
+                ],
+                data: rows,
+              }),
+              releaseAsync: async () => {},
+            }),
+          },
+        },
+      },
+    };
+  }());
+  </script>
+
+  <!-- Load chart logic after mock is defined -->
+  <script src="chart.js"></script>
+</body>
+</html>
