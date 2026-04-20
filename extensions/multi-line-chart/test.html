@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Multi-Line Chart — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    #chart-wrapper {
+      width: 100%;
+      height: calc(100vh - 60px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    #error {
+      width: 100%;
+      height: 100%;
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+
+    .grid line {
+      stroke: #ebebeb;
+      stroke-dasharray: 3 3;
+    }
+    .grid .domain { display: none; }
+
+    .axis text {
+      font-size: 11px;
+      fill: #555;
+    }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+
+    .series-line {
+      fill: none;
+      stroke-width: 2.5px;
+    }
+
+    .dot {
+      r: 4;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+      max-width: 230px;
+    }
+    .tooltip .tt-date {
+      font-weight: 600;
+      font-size: 13px;
+      color: #222;
+      margin-bottom: 4px;
+    }
+
+    .legend text {
+      font-size: 12px;
+      fill: #444;
+    }
+  </style>
+</head>
+<body>
+  <h2>Multi-Line Chart — Browser Test (no Tableau required)</h2>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    /* ── Mock data generator ─────────────────────────────────────────────── */
+    (function () {
+      const SERIES = [
+        { name: 'APAC',     base: 42000, variance: 12000 },
+        { name: 'EMEA',     base: 31000, variance:  9000 },
+        { name: 'Americas', base: 55000, variance: 15000 },
+      ];
+      const MONTHS = 24;
+      const START_YEAR  = 2024;
+      const START_MONTH = 0; // January (0-indexed)
+
+      const columns = [
+        { fieldName: 'Order Date', index: 0, dataType: 'date'   },
+        { fieldName: 'Revenue',    index: 1, dataType: 'float'  },
+        { fieldName: 'Region',     index: 2, dataType: 'string' },
+      ];
+
+      const rows = [];
+      for (let m = 0; m < MONTHS; m++) {
+        const d = new Date(START_YEAR, START_MONTH + m, 1);
+        // ISO date string that new Date() can parse reliably
+        const dateStr = d.toISOString().slice(0, 10);
+        for (const s of SERIES) {
+          const value = s.base + (Math.random() * 2 - 1) * s.variance;
+          rows.push([
+            { value: dateStr },
+            { value: String(Math.round(value)) },
+            { value: s.name },
+          ]);
+        }
+      }
+
+      const dataTable = { columns, data: rows };
+
+      /* ── vizSpec structure expected by chart.js ─────────────────────────── */
+      const vizSpec = {
+        marksSpecificationCollection: [
+          {
+            encodingCollection: [
+              { id: 'x',     fieldCollection: [{ fieldName: 'Order Date' }] },
+              { id: 'y',     fieldCollection: [{ fieldName: 'Revenue'    }] },
+              { id: 'color', fieldCollection: [{ fieldName: 'Region'     }] },
+            ],
+          },
+        ],
+      };
+
+      /* ── window.tableau mock ─────────────────────────────────────────────── */
+      window.tableau = {
+        TableauEventType: {
+          SummaryDataChanged: 'summary-data-changed',
+        },
+
+        extensions: {
+          initializeAsync() {
+            return Promise.resolve();
+          },
+
+          worksheetContent: {
+            worksheet: {
+              addEventListener(type, cb) {
+                // no-op: no live Tableau session to subscribe to
+              },
+
+              getVisualSpecificationAsync() {
+                return Promise.resolve(vizSpec);
+              },
+
+              getSummaryDataReaderAsync(/* _pageRowCount, _options */) {
+                return Promise.resolve({
+                  getAllPagesAsync() {
+                    return Promise.resolve(dataTable);
+                  },
+                  releaseAsync() {
+                    return Promise.resolve();
+                  },
+                });
+              },
+            },
+          },
+        },
+      };
+    })();
+  </script>
+  <script src="chart.js"></script>
+</body>
+</html>
