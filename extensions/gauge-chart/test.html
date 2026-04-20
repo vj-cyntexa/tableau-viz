@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gauge Chart — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+    }
+    h2 { font-size: 14px; color: #333; margin-bottom: 10px; }
+    #chart-wrapper {
+      width: 100%;
+      height: calc(100vh - 80px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #chart { width: 100%; height: 100%; position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; }
+    .tooltip {
+      position: fixed;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+      max-width: 220px;
+      display: none;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+    #error { display: none; background: #fff0f0; color: #c0392b; padding: 8px 16px; border-radius: 6px; margin-bottom: 8px; }
+    #error:not(:empty) { display: block; }
+    #toolbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 6px 12px; background: #f8f8f8;
+      border-bottom: 1px solid #e0e0e0; font-size: 12px; flex-wrap: wrap;
+    }
+    #toolbar label { color: #555; white-space: nowrap; }
+    #toolbar input[type="number"] { width: 52px; padding: 2px 4px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
+    #toolbar select { padding: 2px 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; background: #fff; }
+    #toolbar .sep { width: 1px; height: 18px; background: #ddd; }
+    .toggle-btn { padding: 3px 9px; border: 1px solid #ccc; border-radius: 3px; background: #fff; font-size: 11px; cursor: pointer; color: #444; }
+    .toggle-btn.active { background: #4e79a7; color: #fff; border-color: #4e79a7; }
+  </style>
+</head>
+<body>
+  <h2>Gauge Chart — Browser Test (Mock Data: 3 Loyalty KPIs)</h2>
+  <div id="chart-wrapper">
+    <div id="toolbar">
+      <label>Color scheme:
+        <select id="colorScheme">
+          <option value="traffic">Traffic Light</option>
+          <option value="blue">Blue</option>
+        </select>
+      </label>
+      <div class="sep"></div>
+      <label>Red below: <input type="number" id="thresh1" value="50" min="0" max="100">%</label>
+      <label>Amber below: <input type="number" id="thresh2" value="80" min="0" max="100">%</label>
+      <div class="sep"></div>
+      <button class="toggle-btn active" id="btnTargetLabel">Target Label</button>
+      <div class="sep"></div>
+      <label>Thickness:
+        <select id="arcThickness">
+          <option value="0.12">Thin</option>
+          <option value="0.20" selected>Medium</option>
+          <option value="0.30">Thick</option>
+        </select>
+      </label>
+    </div>
+    <div id="chart"></div>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+  <div id="error"></div>
+
+  <script>
+    // ─── Mock Tableau API ─────────────────────────────────────────────────────
+    // 3 loyalty KPIs:
+    //   1. Redemption Rate:   value=0.34, target=0.40 → 85% of target → amber
+    //   2. Tier Fill Rate:    value=0.78, target=0.80 → 97.5% of target → green
+    //   3. Active Member Rate: value=0.91, target=0.85 → 107% of target → over-target
+    const MOCK_COLUMNS = [
+      { fieldName: 'Value', index: 0 },
+      { fieldName: 'Target', index: 1 },
+      { fieldName: 'KPI Name', index: 2 },
+      { fieldName: 'Min', index: 3 },
+      { fieldName: 'Max', index: 4 },
+    ];
+
+    const MOCK_DATA = [
+      [{ value: 0.34 }, { value: 0.40 }, { value: 'Redemption Rate' },   { value: 0 }, { value: 0.50 }],
+      [{ value: 0.78 }, { value: 0.80 }, { value: 'Tier Fill Rate' },    { value: 0 }, { value: 1.00 }],
+      [{ value: 0.91 }, { value: 0.85 }, { value: 'Active Member Rate' },{ value: 0 }, { value: 1.00 }],
+    ];
+
+    const MOCK_ENCODINGS = [
+      { id: 'value',  fieldCollection: [{ fieldName: 'Value' }] },
+      { id: 'target', fieldCollection: [{ fieldName: 'Target' }] },
+      { id: 'label',  fieldCollection: [{ fieldName: 'KPI Name' }] },
+      { id: 'min',    fieldCollection: [{ fieldName: 'Min' }] },
+      { id: 'max',    fieldCollection: [{ fieldName: 'Max' }] },
+    ];
+
+    window.tableau = {
+      extensions: {
+        initializeAsync() { return Promise.resolve(); },
+        worksheetContent: {
+          worksheet: {
+            addEventListener() {},
+            getVisualSpecificationAsync() {
+              return Promise.resolve({
+                marksSpecificationCollection: [{
+                  encodingCollection: MOCK_ENCODINGS
+                }]
+              });
+            },
+            getSummaryDataReaderAsync() {
+              return Promise.resolve({
+                getAllPagesAsync() {
+                  return Promise.resolve({ columns: MOCK_COLUMNS, data: MOCK_DATA });
+                },
+                releaseAsync() { return Promise.resolve(); }
+              });
+            }
+          }
+        }
+      },
+      TableauEventType: { SummaryDataChanged: 'SummaryDataChanged' }
+    };
+  </script>
+  <script src="chart.js"></script>
+</body>
+</html>

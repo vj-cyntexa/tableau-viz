@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.gaugechart" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>270° gauge arc showing KPI value vs target with traffic-light coloring — built with D3.js v7</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>https://vj-cyntexa.github.io/tableau-viz/extensions/gauge-chart/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="value">
+      <display-name resource-id="value_label">Current Value</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="target">
+      <display-name resource-id="target_label">Target / Goal</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="label">
+      <display-name resource-id="label_label">KPI Name (Label)</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+    <encoding id="min">
+      <display-name resource-id="min_label">Scale Minimum</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+    <encoding id="max">
+      <display-name resource-id="max_label">Scale Maximum</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Gauge Chart</text></resource>
+    <resource id="value_label"><text locale="en_US">Current Value</text></resource>
+    <resource id="target_label"><text locale="en_US">Target / Goal</text></resource>
+    <resource id="label_label"><text locale="en_US">KPI Name (Label)</text></resource>
+    <resource id="min_label"><text locale="en_US">Scale Minimum</text></resource>
+    <resource id="max_label"><text locale="en_US">Scale Maximum</text></resource>
+  </resources>
+</manifest>
