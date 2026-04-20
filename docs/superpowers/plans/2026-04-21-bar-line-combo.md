@@ -29,7 +29,7 @@
 - [x] Task 2 — HTML shell (`index.html`)
 - [x] Task 3 — D3 chart logic (`chart.js`)
 - [x] Task 4 — Standalone test page (`test.html`)
-- [ ] Task 5 — README (`README.md`)
+- [x] Task 5 — README (`README.md`)
 - [ ] Task 6 — GitHub Pages, CLAUDE.md update, final push
 
 ---
@@ -956,7 +956,7 @@ git commit -m "feat: add browser test page with monthly revenue + growth rate mo
 **Files:**
 - Create: `extensions/bar-line-combo/README.md`
 
-- [ ] **Step 5.1: Write README.md**
+- [x] **Step 5.1: Write README.md**
 
 Create `extensions/bar-line-combo/README.md`:
 
@@ -1035,7 +1035,7 @@ To use the production extension on Tableau Cloud, add the GitHub Pages URL to th
 - **Line aggregation when stacked:** When multiple rows share the same X value (due to the `color` grouping), line values are averaged per X category.
 ```
 
-- [ ] **Step 5.2: Commit**
+- [x] **Step 5.2: Commit**
 
 ```bash
 git add extensions/bar-line-combo/README.md
