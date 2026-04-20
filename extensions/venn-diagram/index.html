@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Venn Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/venn.js@0.2.20/build/venn.js"></script>
+  <script src="https://extensions.tableau.com/lib/tableau.extensions.2.latest.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    #chart {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* venn.js circle/intersection regions */
+    #chart .venntooltip {
+      display: none; /* we use our own tooltip */
+    }
+
+    /* Make venn.js circle paths semi-transparent */
+    #chart svg .venn-circle path {
+      fill-opacity: 0.20;
+      stroke-width: 2;
+    }
+
+    #chart svg .venn-circle path:hover,
+    #chart svg .venn-circle.hover path {
+      fill-opacity: 0.40;
+      cursor: pointer;
+    }
+
+    #chart svg .venn-intersection path {
+      fill-opacity: 0;
+    }
+
+    #chart svg .venn-intersection path:hover,
+    #chart svg .venn-intersection.hover path {
+      fill-opacity: 0.15;
+      cursor: pointer;
+    }
+
+    /* Labels inside each region */
+    #chart svg text.venn-label-name {
+      font-size: 14px;
+      font-weight: 600;
+      fill: #333;
+      pointer-events: none;
+    }
+
+    #chart svg text.venn-label-count {
+      font-size: 12px;
+      fill: #555;
+      pointer-events: none;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+      max-width: 240px;
+      display: none;
+    }
+
+    .tooltip .tt-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #222;
+      margin-bottom: 3px;
+    }
+
+    /* Error banner */
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+  <div class="tooltip" id="tooltip"></div>
+  <div id="error"></div>
+  <script src="chart.js"></script>
+</body>
+</html>

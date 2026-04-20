@@ -12,7 +12,7 @@
 
 ## Progress Tracker
 - [x] Task 1: TREX manifests
-- [ ] Task 2: index.html
+- [x] Task 2: index.html
 - [ ] Task 3: chart.js
 - [ ] Task 4: test.html
 - [ ] Task 5: README.md
@@ -129,7 +129,7 @@ Create `extensions/venn-diagram/venn-diagram-local.trex` — identical to above 
 
 **File:** `extensions/venn-diagram/index.html`
 
-- [ ] **Step 2.1: Create the extension shell HTML**
+- [x] **Step 2.1: Create the extension shell HTML**
 
 Create `extensions/venn-diagram/index.html`:
 
