@@ -25,7 +25,7 @@
 
 ## Progress Tracker
 
-- [ ] Task 1 — TREX Manifests
+- [x] Task 1 — TREX Manifests
 - [ ] Task 2 — HTML Shell (`index.html`)
 - [ ] Task 3 — Chart Logic (`chart.js`)
 - [ ] Task 4 — Test Page (`test.html`)
@@ -40,7 +40,7 @@
 - Create: `extensions/relationship-table/relationship-table.trex`
 - Create: `extensions/relationship-table/relationship-table-local.trex`
 
-- [ ] **Step 1.1: Create production manifest**
+- [x] **Step 1.1: Create production manifest**
 
 Create `extensions/relationship-table/relationship-table.trex`:
 
@@ -82,7 +82,7 @@ Create `extensions/relationship-table/relationship-table.trex`:
 </manifest>
 ```
 
-- [ ] **Step 1.2: Create local dev manifest**
+- [x] **Step 1.2: Create local dev manifest**
 
 Create `extensions/relationship-table/relationship-table-local.trex` — identical to above except the `<worksheet-extension id>` and `<url>`:
 
@@ -124,7 +124,7 @@ Create `extensions/relationship-table/relationship-table-local.trex` — identic
 </manifest>
 ```
 
-- [ ] **Step 1.3: Commit**
+- [x] **Step 1.3: Commit**
 
 ```bash
 git add extensions/relationship-table/relationship-table.trex extensions/relationship-table/relationship-table-local.trex
