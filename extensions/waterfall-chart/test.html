@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Waterfall Chart — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 12px; }
+    #toolbar {
+      display: flex; align-items: center; gap: 12px; padding: 6px 12px;
+      background: #f8f8f8; border: 1px solid #e0e0e0; border-bottom: none;
+      border-radius: 8px 8px 0 0; flex-wrap: wrap;
+    }
+    #toolbar .toolbar-group { display: flex; align-items: center; gap: 4px; }
+    #toolbar label { font-size: 11px; color: #555; font-weight: 600; text-transform: uppercase; margin-right: 4px; }
+    #toolbar button {
+      font-size: 11px; padding: 3px 9px; border: 1px solid #ccc;
+      border-radius: 4px; background: #fff; color: #333; cursor: pointer;
+    }
+    #toolbar button.active { background: #4e79a7; color: #fff; border-color: #4e79a7; }
+    #toolbar .sep { width: 1px; height: 20px; background: #ddd; margin: 0 4px; }
+    #chart-wrapper {
+      width: 100%; height: calc(100vh - 120px);
+      background: #fff; border: 1px solid #ddd; border-radius: 0 0 8px 8px;
+      overflow: hidden; position: relative;
+    }
+    #chart { width: 100%; height: 100%; position: relative; }
+    #error {
+      display: none; position: fixed; bottom: 10px; left: 50%;
+      transform: translateX(-50%); background: #fff0f0; color: #c0392b;
+      border: 1px solid #f5c6c6; border-radius: 6px; padding: 8px 16px;
+      font-size: 13px; z-index: 100; max-width: 80vw; text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+    .bar-gain, .bar-total, .bar-gain-gr, .bar-neutral { }
+    .connector { stroke: #aaa; stroke-width: 1; fill: none; }
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+    .zero-line { stroke: #999; stroke-width: 1; }
+    .bar-label { font-size: 11px; text-anchor: middle; pointer-events: none; }
+    .running-total { font-size: 10px; fill: #666; text-anchor: middle; pointer-events: none; }
+    .tooltip {
+      position: absolute; background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd; border-radius: 6px; padding: 9px 13px;
+      font-size: 12px; line-height: 1.7; pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10); max-width: 220px; z-index: 50;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h2>Waterfall Chart — Browser Test (no Tableau required)</h2>
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <label>Colors</label>
+      <button class="scheme-btn active" data-scheme="blue-red">Blue/Red</button>
+      <button class="scheme-btn" data-scheme="green-red">Green/Red</button>
+      <button class="scheme-btn" data-scheme="single">Single</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Connectors</label>
+      <button id="btn-connectors" class="active">Show</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Running Total</label>
+      <button id="btn-running-total" class="active">Show</button>
+    </div>
+  </div>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    // 8-step net member movement for loyalty program
+    // Start total + 5 relative changes + end total
+    // Row order IS the waterfall sequence — do not reorder
+    const MOCK_STEPS = [
+      { label: 'Start Members',   value: 10000, type: 'total'    },
+      { label: 'New Joins',       value: 2200,  type: 'relative' },
+      { label: 'Reactivated',     value: 850,   type: 'relative' },
+      { label: 'Tier Upgrades',   value: 480,   type: 'relative' },
+      { label: 'Tier Downgrades', value: -320,  type: 'relative' },
+      { label: 'Churned',         value: -1100, type: 'relative' },
+      { label: 'Expired',         value: -280,  type: 'relative' },
+      { label: 'End Members',     value: 11830, type: 'total'    },
+    ];
+
+    const columns = [
+      { fieldName: 'Step',     index: 0, dataType: 'string' },
+      { fieldName: 'Members',  index: 1, dataType: 'float'  },
+      { fieldName: 'Bar Type', index: 2, dataType: 'string' },
+    ];
+
+    const rows = MOCK_STEPS.map(s => [
+      { value: s.label        },
+      { value: String(s.value) },
+      { value: s.type         },
+    ]);
+
+    const dataTable = { columns, data: rows };
+    const vizSpec = {
+      marksSpecificationCollection: [{
+        encodingCollection: [
+          { id: 'label', fieldCollection: [{ fieldName: 'Step'     }] },
+          { id: 'value', fieldCollection: [{ fieldName: 'Members'  }] },
+          { id: 'type',  fieldCollection: [{ fieldName: 'Bar Type' }] },
+        ],
+      }],
+    };
+
+    window.tableau = {
+      TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+      extensions: {
+        initializeAsync() { return Promise.resolve(); },
+        worksheetContent: {
+          worksheet: {
+            addEventListener() {},
+            getVisualSpecificationAsync() { return Promise.resolve(vizSpec); },
+            getSummaryDataReaderAsync() {
+              return Promise.resolve({
+                getAllPagesAsync() { return Promise.resolve(dataTable); },
+                releaseAsync()    { return Promise.resolve(); },
+              });
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <script src="chart.js"></script>
+  <script>
+    document.querySelectorAll('.scheme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.scheme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.WF_STATE.colorScheme = btn.dataset.scheme;
+        window.WF_STATE.redraw();
+      });
+    });
+    document.getElementById('btn-connectors').addEventListener('click', function () {
+      window.WF_STATE.showConnectors = !window.WF_STATE.showConnectors;
+      this.textContent = window.WF_STATE.showConnectors ? 'Show' : 'Hide';
+      this.classList.toggle('active', window.WF_STATE.showConnectors);
+      window.WF_STATE.redraw();
+    });
+    document.getElementById('btn-running-total').addEventListener('click', function () {
+      window.WF_STATE.showRunningTotal = !window.WF_STATE.showRunningTotal;
+      this.textContent = window.WF_STATE.showRunningTotal ? 'Show' : 'Hide';
+      this.classList.toggle('active', window.WF_STATE.showRunningTotal);
+      window.WF_STATE.redraw();
+    });
+  </script>
+</body>
+</html>
