@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Affinity Matrix</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://extensions.tableau.com/lib/tableau.extensions.2.latest.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    #toolbar .label {
+      font-size: 12px;
+      color: #666;
+      margin-right: 4px;
+    }
+
+    .metric-btn {
+      padding: 4px 14px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: #fff;
+      color: #333;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .metric-btn.active {
+      background: #1f77b4;
+      border-color: #1f77b4;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .metric-btn:hover:not(.active):not(:disabled) {
+      background: #f0f4fa;
+      border-color: #1f77b4;
+    }
+
+    .metric-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #ddd;
+      background: #f9f9f9;
+      color: #aaa;
+    }
+
+    /* ── Table scroll wrapper ── */
+    #table-wrapper {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+
+    /* ── Matrix table ── */
+    #matrix-table {
+      border-collapse: collapse;
+      min-width: 100%;
+    }
+
+    #matrix-table th,
+    #matrix-table td {
+      border: 1px solid #e0e0e0;
+      padding: 6px 10px;
+      white-space: nowrap;
+      text-align: right;
+      min-width: 88px;
+    }
+
+    /* Row header cells (first column) */
+    #matrix-table th.row-header,
+    #matrix-table td.row-header {
+      text-align: left;
+      font-weight: 600;
+      color: #222;
+      background: #f5f5f5;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 140px;
+      border-right: 2px solid #d0d0d0;
+    }
+
+    /* Column header row */
+    #matrix-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: #f5f5f5;
+      font-weight: 600;
+      color: #222;
+      text-align: center;
+      border-bottom: 2px solid #d0d0d0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Top-left corner: sticky on both axes */
+    #matrix-table thead th.row-header {
+      z-index: 4;
+      text-align: left;
+      cursor: default;
+    }
+
+    /* Sort arrows */
+    #matrix-table thead th .sort-arrow {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: 0.4;
+      font-size: 10px;
+    }
+
+    #matrix-table thead th.sorted-asc  .sort-arrow::after { content: '▲'; opacity: 1; }
+    #matrix-table thead th.sorted-desc .sort-arrow::after { content: '▼'; opacity: 1; }
+    #matrix-table thead th:not(.sorted-asc):not(.sorted-desc) .sort-arrow::after { content: '⬍'; }
+
+    /* Data cells */
+    #matrix-table td.data-cell {
+      font-variant-numeric: tabular-nums;
+      transition: opacity 0.15s;
+      cursor: default;
+    }
+
+    #matrix-table td.data-cell:hover {
+      outline: 2px solid rgba(0, 0, 0, 0.3);
+      outline-offset: -2px;
+    }
+
+    /* Diagonal cells */
+    #matrix-table td.diagonal-cell {
+      background: #e8e8e8 !important;
+      color: #888 !important;
+      font-style: italic;
+    }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.8;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      max-width: 280px;
+      z-index: 100;
+      display: none;
+    }
+
+    #tooltip .tt-title   { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
+    #tooltip .tt-pair    { color: #555; }
+    #tooltip .tt-count   { color: #333; }
+    #tooltip .tt-support { color: #6a3d9a; font-weight: 600; }
+    #tooltip .tt-lift    { color: #e08214; font-weight: 600; }
+    #tooltip .tt-diag    { color: #888; font-style: italic; }
+
+    /* ── Error banner ── */
+    #error {
+      display: none;
+      padding: 10px 16px;
+      background: #fff0f0;
+      color: #c0392b;
+      border-bottom: 1px solid #f5c6c6;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    #error:not(:empty) { display: block; }
+
+    /* ── Empty state ── */
+    #empty-state {
+      display: none;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 14px;
+      text-align: center;
+      padding: 40px;
+      line-height: 1.8;
+    }
+
+    #empty-state.visible { display: flex; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <span class="label">Metric:</span>
+    <button class="metric-btn active" data-metric="count">Count</button>
+    <button class="metric-btn" data-metric="lift">Lift</button>
+    <button class="metric-btn" data-metric="support">Support</button>
+  </div>
+  <div id="error"></div>
+  <div id="table-wrapper">
+    <table id="matrix-table"></table>
+  </div>
+  <div id="empty-state">
+    Drag a product dimension onto <strong>Row Product</strong> and <strong>Column Product</strong>,<br>
+    a co-purchase count onto <strong>Co-purchase Count</strong>,<br>
+    and totals onto <strong>Row Product Total Purchases</strong> and <strong>Column Product Total Purchases</strong>.
+  </div>
+  <div id="tooltip"></div>
+  <script src="chart.js"></script>
+</body>
+</html>

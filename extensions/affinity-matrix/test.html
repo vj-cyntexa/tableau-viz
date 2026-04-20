@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Affinity Matrix — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    h2 {
+      font-size: 13px;
+      color: #666;
+      flex-shrink: 0;
+    }
+    #frame-wrapper {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    /* ── Replicate index.html styles inline ── */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fafafa;
+      flex-shrink: 0;
+    }
+    #toolbar .label { font-size: 12px; color: #666; margin-right: 4px; }
+    .metric-btn {
+      padding: 4px 14px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      background: #fff;
+      color: #333;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .metric-btn.active { background: #1f77b4; border-color: #1f77b4; color: #fff; font-weight: 600; }
+    .metric-btn:hover:not(.active):not(:disabled) { background: #f0f4fa; border-color: #1f77b4; }
+    .metric-btn:disabled { opacity: .4; cursor: not-allowed; border-color: #ddd; background: #f9f9f9; color: #aaa; }
+    #table-wrapper { flex: 1; overflow: auto; position: relative; }
+    #matrix-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+    #matrix-table th, #matrix-table td {
+      border: 1px solid #e0e0e0;
+      padding: 6px 10px;
+      white-space: nowrap;
+      text-align: right;
+      min-width: 88px;
+    }
+    #matrix-table th.row-header, #matrix-table td.row-header {
+      text-align: left;
+      font-weight: 600;
+      color: #222;
+      background: #f5f5f5;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 140px;
+      border-right: 2px solid #d0d0d0;
+    }
+    #matrix-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: #f5f5f5;
+      font-weight: 600;
+      color: #222;
+      text-align: center;
+      border-bottom: 2px solid #d0d0d0;
+      cursor: pointer;
+      user-select: none;
+    }
+    #matrix-table thead th.row-header { z-index: 4; text-align: left; cursor: default; }
+    .sort-arrow { display: inline-block; margin-left: 4px; opacity: .4; font-size: 10px; }
+    th.sorted-asc .sort-arrow::after  { content: '▲'; opacity: 1; }
+    th.sorted-desc .sort-arrow::after { content: '▼'; opacity: 1; }
+    th:not(.sorted-asc):not(.sorted-desc) .sort-arrow::after { content: '⬍'; }
+    #matrix-table td.data-cell { font-variant-numeric: tabular-nums; cursor: default; }
+    #matrix-table td.data-cell:hover { outline: 2px solid rgba(0,0,0,.3); outline-offset: -2px; }
+    #matrix-table td.diagonal-cell { background: #e8e8e8 !important; color: #888 !important; font-style: italic; }
+    #tooltip {
+      position: fixed;
+      background: rgba(255,255,255,.97);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.8;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,.12);
+      max-width: 280px;
+      z-index: 100;
+      display: none;
+    }
+    #tooltip .tt-title   { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
+    #tooltip .tt-pair    { color: #555; }
+    #tooltip .tt-count   { color: #333; }
+    #tooltip .tt-support { color: #6a3d9a; font-weight: 600; }
+    #tooltip .tt-lift    { color: #e08214; font-weight: 600; }
+    #tooltip .tt-diag    { color: #888; font-style: italic; }
+    #error { display: none; padding: 10px 16px; background: #fff0f0; color: #c0392b; font-size: 13px; }
+    #error:not(:empty) { display: block; }
+    #empty-state { display: none; }
+  </style>
+</head>
+<body>
+  <h2>Affinity Matrix — Browser Test (no Tableau required) | Products: Espresso, Latte, Muffin, Croissant, Sandwich | 10,000 transactions</h2>
+  <div id="frame-wrapper">
+    <div id="toolbar">
+      <span class="label">Metric:</span>
+      <button class="metric-btn active" data-metric="count">Count</button>
+      <button class="metric-btn" data-metric="lift">Lift</button>
+      <button class="metric-btn" data-metric="support">Support</button>
+    </div>
+    <div id="error"></div>
+    <div id="table-wrapper">
+      <table id="matrix-table"></table>
+    </div>
+    <div id="empty-state"></div>
+  </div>
+  <div id="tooltip"></div>
+
+  <script>
+  // ─── Mock data: 5 coffee-shop products, symmetric co-purchase matrix ─────────
+  //
+  // Products and their total purchase counts (out of 10,000 transactions):
+  //   Espresso:  4,200
+  //   Latte:     3,800
+  //   Muffin:    2,100
+  //   Croissant: 1,800
+  //   Sandwich:  1,500
+  //
+  // Co-purchase counts (A+B appears in the same transaction):
+  //   Espresso + Latte:     1,800  (high affinity)
+  //   Espresso + Muffin:      950
+  //   Espresso + Croissant:   600
+  //   Espresso + Sandwich:    380
+  //   Latte + Muffin:       1,100  (high affinity)
+  //   Latte + Croissant:      720
+  //   Latte + Sandwich:       290
+  //   Muffin + Croissant:     680
+  //   Muffin + Sandwich:      210
+  //   Croissant + Sandwich:   180
+  //
+  // Diagonal (A + A) = rowTotal for that product (shown grey in chart)
+
+  const PRODUCTS = ['Espresso', 'Latte', 'Muffin', 'Croissant', 'Sandwich'];
+  const TOTALS = {
+    Espresso:  4200,
+    Latte:     3800,
+    Muffin:    2100,
+    Croissant: 1800,
+    Sandwich:  1500,
+  };
+  const GRAND_TOTAL = 10000;
+
+  // Symmetric co-purchase counts (off-diagonal only)
+  const PAIRS = {
+    'Espresso:Latte':      1800,
+    'Espresso:Muffin':      950,
+    'Espresso:Croissant':   600,
+    'Espresso:Sandwich':    380,
+    'Latte:Muffin':        1100,
+    'Latte:Croissant':      720,
+    'Latte:Sandwich':       290,
+    'Muffin:Croissant':     680,
+    'Muffin:Sandwich':      210,
+    'Croissant:Sandwich':   180,
+  };
+
+  function getPairCount(a, b) {
+    if (a === b) return TOTALS[a];  // diagonal = self-total
+    const key = PAIRS[`${a}:${b}`] !== undefined ? `${a}:${b}` : `${b}:${a}`;
+    return PAIRS[key] ?? 0;
+  }
+
+  // Build flat rows: one per (row_product, col_product) ordered pair
+  // Columns: Product (row), Product (col), Co-purchase Count, Row Total, Col Total, Grand Total
+  const MOCK_ROWS = [];
+  for (const rowProd of PRODUCTS) {
+    for (const colProd of PRODUCTS) {
+      MOCK_ROWS.push([
+        rowProd,
+        colProd,
+        getPairCount(rowProd, colProd),
+        TOTALS[rowProd],
+        TOTALS[colProd],
+        GRAND_TOTAL,
+      ]);
+    }
+  }
+
+  // Tableau DataTable shape
+  const MOCK_DATA_TABLE = {
+    columns: [
+      { fieldName: 'Product',       index: 0 },
+      { fieldName: 'Product (col)', index: 1 },
+      { fieldName: 'Co-purchases',  index: 2 },
+      { fieldName: 'Row Total',     index: 3 },
+      { fieldName: 'Col Total',     index: 4 },
+      { fieldName: 'Grand Total',   index: 5 },
+    ],
+    data: MOCK_ROWS.map(r => r.map(v => ({ value: v }))),
+  };
+
+  // VizSpec: both row and col use the same field name ("Product") — this triggers isSymmetric = true
+  const MOCK_VIZ_SPEC = {
+    marksSpecificationCollection: [{
+      encodingCollection: [
+        { id: 'row',         fieldCollection: [{ fieldName: 'Product' }] },
+        { id: 'col',         fieldCollection: [{ fieldName: 'Product' }] },
+        { id: 'count',       fieldCollection: [{ fieldName: 'Co-purchases' }] },
+        { id: 'row_total',   fieldCollection: [{ fieldName: 'Row Total' }] },
+        { id: 'col_total',   fieldCollection: [{ fieldName: 'Col Total' }] },
+        { id: 'grand_total', fieldCollection: [{ fieldName: 'Grand Total' }] },
+      ],
+    }],
+  };
+
+  // Mock Tableau Extensions API
+  window.tableau = {
+    TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+    extensions: {
+      initializeAsync: async () => {},
+      worksheetContent: {
+        worksheet: {
+          addEventListener: () => {},
+          getVisualSpecificationAsync: async () => MOCK_VIZ_SPEC,
+          getSummaryDataReaderAsync: async () => ({
+            getAllPagesAsync: async () => MOCK_DATA_TABLE,
+            releaseAsync: async () => {},
+          }),
+        },
+      },
+    },
+  };
+  </script>
+
+  <!-- Load chart logic after mock is defined -->
+  <script src="chart.js"></script>
+</body>
+</html>
