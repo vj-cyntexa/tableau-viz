@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Survival / Churn Curve</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://extensions.tableau.com/lib/tableau.extensions.2.latest.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 12px;
+      background: #f8f8f8;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    #toolbar .toolbar-group { display: flex; align-items: center; gap: 4px; }
+
+    #toolbar label {
+      font-size: 11px;
+      color: #555;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 4px;
+    }
+
+    #toolbar button {
+      font-size: 11px;
+      padding: 3px 9px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+    }
+
+    #toolbar button.active {
+      background: #4e79a7;
+      color: #fff;
+      border-color: #4e79a7;
+    }
+
+    #toolbar button:hover:not(.active) { background: #f0f0f0; }
+
+    #toolbar .sep { width: 1px; height: 20px; background: #ddd; margin: 0 4px; }
+
+    #chart {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+
+    .series-line { fill: none; stroke-width: 2.5px; }
+    .ci-band { stroke: none; }
+    .median-line { stroke-dasharray: 5 4; stroke-width: 1.5; }
+    .median-label { font-size: 10px; }
+    .fifty-line { stroke: #bbb; stroke-dasharray: 4 3; stroke-width: 1; }
+
+    .grid line { stroke: #ebebeb; stroke-dasharray: 3 3; }
+    .grid .domain { display: none; }
+
+    .axis text { font-size: 11px; fill: #555; }
+    .axis .domain { stroke: #ccc; }
+    .axis .tick line { stroke: #ccc; }
+
+    .legend text { font-size: 12px; fill: #444; }
+
+    .dot { r: 4; }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+      max-width: 240px;
+      z-index: 50;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <label>CI Bands</label>
+      <button id="btn-ci" class="active">Show</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Curve style</label>
+      <button class="curve-btn active" data-curve="smooth">Smooth</button>
+      <button class="curve-btn" data-curve="step">Step (KM)</button>
+    </div>
+    <div class="sep"></div>
+    <div class="toolbar-group">
+      <label>Median Marker</label>
+      <button id="btn-median" class="active">Show</button>
+    </div>
+  </div>
+  <div id="chart"></div>
+  <div id="error"></div>
+  <script src="chart.js"></script>
+  <script>
+    document.getElementById('btn-ci').addEventListener('click', function () {
+      window.SURV_STATE.showCI = !window.SURV_STATE.showCI;
+      this.textContent = window.SURV_STATE.showCI ? 'Show' : 'Hide';
+      this.classList.toggle('active', window.SURV_STATE.showCI);
+      window.SURV_STATE.redraw();
+    });
+
+    document.querySelectorAll('.curve-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.curve-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.SURV_STATE.curveStyle = btn.dataset.curve;
+        window.SURV_STATE.redraw();
+      });
+    });
+
+    document.getElementById('btn-median').addEventListener('click', function () {
+      window.SURV_STATE.showMedian = !window.SURV_STATE.showMedian;
+      this.textContent = window.SURV_STATE.showMedian ? 'Show' : 'Hide';
+      this.classList.toggle('active', window.SURV_STATE.showMedian);
+      window.SURV_STATE.redraw();
+    });
+  </script>
+</body>
+</html>

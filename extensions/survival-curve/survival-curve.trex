@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.survivalcurve" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Kaplan-Meier survival / churn curve showing customer retention probability over time by loyalty segment, with confidence interval bands and median survival markers</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>https://vj-cyntexa.github.io/tableau-viz/extensions/survival-curve/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="period">
+      <display-name resource-id="period_label">Period (time index 0, 1, 2, …)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="survival">
+      <display-name resource-id="survival_label">Survival Probability (0.0–1.0)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="segment">
+      <display-name resource-id="segment_label">Segment (optional — multiple lines)</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+    <encoding id="ci_lower">
+      <display-name resource-id="ci_lower_label">CI Lower Bound (optional)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+    <encoding id="ci_upper">
+      <display-name resource-id="ci_upper_label">CI Upper Bound (optional)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Survival / Churn Curve</text></resource>
+    <resource id="period_label"><text locale="en_US">Period (time index 0, 1, 2, …)</text></resource>
+    <resource id="survival_label"><text locale="en_US">Survival Probability (0.0–1.0)</text></resource>
+    <resource id="segment_label"><text locale="en_US">Segment (optional — multiple lines)</text></resource>
+    <resource id="ci_lower_label"><text locale="en_US">CI Lower Bound (optional)</text></resource>
+    <resource id="ci_upper_label"><text locale="en_US">CI Upper Bound (optional)</text></resource>
+  </resources>
+</manifest>
