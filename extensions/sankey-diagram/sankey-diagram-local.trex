@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.sankeydiagram.local" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Sankey flow diagram — local dev</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>http://localhost:8080/extensions/sankey-diagram/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="source">
+      <display-name resource-id="source_label">Source Node</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="target">
+      <display-name resource-id="target_label">Target Node</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="value">
+      <display-name resource-id="value_label">Flow Volume</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Sankey Diagram (Local)</text></resource>
+    <resource id="source_label"><text locale="en_US">Source Node</text></resource>
+    <resource id="target_label"><text locale="en_US">Target Node</text></resource>
+    <resource id="value_label"><text locale="en_US">Flow Volume</text></resource>
+  </resources>
+</manifest>

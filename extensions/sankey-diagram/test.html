@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sankey Diagram — Browser Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 12px;
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      flex-wrap: wrap;
+    }
+    #toolbar .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #toolbar label {
+      font-size: 11px;
+      color: #555;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 4px;
+    }
+    #toolbar button {
+      font-size: 11px;
+      padding: 3px 9px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+    }
+    #toolbar button.active {
+      background: #4e79a7;
+      color: #fff;
+      border-color: #4e79a7;
+    }
+    #chart-wrapper {
+      width: 100%;
+      height: calc(100vh - 120px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    #chart {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 100;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+    .node rect { cursor: pointer; }
+    .node text { font-size: 11px; fill: #333; pointer-events: none; }
+    .link { fill: none; stroke-opacity: 0.3; cursor: pointer; transition: stroke-opacity 0.15s; }
+    .link:hover { stroke-opacity: 0.6; }
+    .tooltip {
+      position: absolute;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 9px 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+      max-width: 260px;
+      z-index: 50;
+    }
+    .tooltip .tt-title { font-weight: 600; font-size: 13px; color: #222; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h2>Sankey Diagram — Browser Test (no Tableau required)</h2>
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <label>Alignment</label>
+      <button class="align-btn active" data-align="justify">Justify</button>
+      <button class="align-btn" data-align="left">Left</button>
+      <button class="align-btn" data-align="right">Right</button>
+      <button class="align-btn" data-align="center">Center</button>
+    </div>
+    <div class="toolbar-group">
+      <label>Color by</label>
+      <button class="color-btn active" data-color="source">Source</button>
+      <button class="color-btn" data-color="target">Target</button>
+      <button class="color-btn" data-color="single">Single</button>
+    </div>
+  </div>
+  <div id="chart-wrapper">
+    <div id="chart"></div>
+    <div id="error"></div>
+  </div>
+  <script>
+    // Customer loyalty tier migration mock data
+    // 8 flow pairs: Bronze/Silver/Gold/Platinum → Bronze/Silver/Gold/Platinum/Churned (Period 1 → Period 2)
+    const MOCK_FLOWS = [
+      // Source tier → Target tier: volume
+      { source: 'Bronze (P1)',   target: 'Bronze (P2)',    value: 4200 },
+      { source: 'Bronze (P1)',   target: 'Silver (P2)',    value: 1100 },
+      { source: 'Bronze (P1)',   target: 'Churned',        value: 800  },
+      { source: 'Silver (P1)',   target: 'Silver (P2)',    value: 2800 },
+      { source: 'Silver (P1)',   target: 'Gold (P2)',      value: 650  },
+      { source: 'Silver (P1)',   target: 'Churned',        value: 420  },
+      { source: 'Gold (P1)',     target: 'Gold (P2)',      value: 1900 },
+      { source: 'Gold (P1)',     target: 'Platinum (P2)',  value: 310  },
+      { source: 'Gold (P1)',     target: 'Silver (P2)',    value: 180  },
+      { source: 'Gold (P1)',     target: 'Churned',        value: 95   },
+      { source: 'Platinum (P1)', target: 'Platinum (P2)', value: 780  },
+      { source: 'Platinum (P1)', target: 'Gold (P2)',      value: 90  },
+      { source: 'Platinum (P1)', target: 'Churned',        value: 45  },
+    ];
+
+    const columns = [
+      { fieldName: 'Source Tier', index: 0, dataType: 'string' },
+      { fieldName: 'Target Tier', index: 1, dataType: 'string' },
+      { fieldName: 'Members',     index: 2, dataType: 'float'  },
+    ];
+
+    const rows = MOCK_FLOWS.map(f => [
+      { value: f.source },
+      { value: f.target },
+      { value: String(f.value) },
+    ]);
+
+    const dataTable = { columns, data: rows };
+
+    const vizSpec = {
+      marksSpecificationCollection: [{
+        encodingCollection: [
+          { id: 'source', fieldCollection: [{ fieldName: 'Source Tier' }] },
+          { id: 'target', fieldCollection: [{ fieldName: 'Target Tier' }] },
+          { id: 'value',  fieldCollection: [{ fieldName: 'Members'     }] },
+        ],
+      }],
+    };
+
+    window.tableau = {
+      TableauEventType: { SummaryDataChanged: 'summary-data-changed' },
+      extensions: {
+        initializeAsync() { return Promise.resolve(); },
+        worksheetContent: {
+          worksheet: {
+            addEventListener() {},
+            getVisualSpecificationAsync() { return Promise.resolve(vizSpec); },
+            getSummaryDataReaderAsync() {
+              return Promise.resolve({
+                getAllPagesAsync() { return Promise.resolve(dataTable); },
+                releaseAsync()    { return Promise.resolve(); },
+              });
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <script src="chart.js"></script>
+  <script>
+    // Wire toolbar
+    document.querySelectorAll('.align-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.SANKEY_STATE.alignment = btn.dataset.align;
+        window.SANKEY_STATE.redraw();
+      });
+    });
+    document.querySelectorAll('.color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.SANKEY_STATE.colorMode = btn.dataset.color;
+        window.SANKEY_STATE.redraw();
+      });
+    });
+  </script>
+</body>
+</html>
