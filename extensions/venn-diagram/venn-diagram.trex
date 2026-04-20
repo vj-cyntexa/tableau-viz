@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.cyntexa.venndiagram" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Venn diagram showing customer overlap between loyalty tiers, built with D3.js and venn.js</description>
+    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <min-api-version>1.1</min-api-version>
+    <source-location>
+      <url>https://vj-cyntexa.github.io/tableau-viz/extensions/venn-diagram/index.html</url>
+    </source-location>
+    <icon/>
+    <encoding id="sets">
+      <display-name resource-id="sets_label">Sets (comma-separated for intersections)</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="value">
+      <display-name resource-id="value_label">Value (Count / Size)</display-name>
+      <role-spec><role-type>continuous-measure</role-type></role-spec>
+      <fields min-count="1" max-count="1"/>
+    </encoding>
+    <encoding id="label">
+      <display-name resource-id="label_label">Label (optional, falls back to Sets)</display-name>
+      <role-spec><role-type>discrete-dimension</role-type></role-spec>
+      <fields min-count="0" max-count="1"/>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Venn Diagram</text></resource>
+    <resource id="sets_label"><text locale="en_US">Sets (comma-separated for intersections)</text></resource>
+    <resource id="value_label"><text locale="en_US">Value (Count / Size)</text></resource>
+    <resource id="label_label"><text locale="en_US">Label (optional, falls back to Sets)</text></resource>
+  </resources>
+</manifest>

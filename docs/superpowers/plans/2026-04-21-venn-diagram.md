@@ -11,7 +11,7 @@
 ---
 
 ## Progress Tracker
-- [ ] Task 1: TREX manifests
+- [x] Task 1: TREX manifests
 - [ ] Task 2: index.html
 - [ ] Task 3: chart.js
 - [ ] Task 4: test.html
@@ -39,7 +39,7 @@
 - Create: `extensions/venn-diagram/venn-diagram.trex`
 - Create: `extensions/venn-diagram/venn-diagram-local.trex`
 
-- [ ] **Step 1.1: Create production manifest**
+- [x] **Step 1.1: Create production manifest**
 
 Create `extensions/venn-diagram/venn-diagram.trex`:
 
@@ -81,7 +81,7 @@ Create `extensions/venn-diagram/venn-diagram.trex`:
 </manifest>
 ```
 
-- [ ] **Step 1.2: Create local dev manifest**
+- [x] **Step 1.2: Create local dev manifest**
 
 Create `extensions/venn-diagram/venn-diagram-local.trex` — identical to above except the extension id and `<url>`:
 
