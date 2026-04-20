@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KPI Card</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://extensions.tableau.com/lib/tableau.extensions.2.latest.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f7f8fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Card container ─────────────────────────────────────────────────── */
+    #kpi-card {
+      position: relative;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+      padding: 32px 36px 28px;
+      min-width: 240px;
+      max-width: 420px;
+      width: 90vw;
+      text-align: center;
+    }
+
+    /* ── Mode pill buttons ──────────────────────────────────────────────── */
+    #mode-buttons {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1.5px solid #c9cdd4;
+      background: transparent;
+      color: #7a828e;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      line-height: 1.5;
+    }
+
+    .mode-btn:hover {
+      border-color: #3498db;
+      color: #3498db;
+    }
+
+    .mode-btn.active {
+      background: #3498db;
+      border-color: #3498db;
+      color: #ffffff;
+    }
+
+    /* ── Card label / title ─────────────────────────────────────────────── */
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9198a1;
+      margin-bottom: 10px;
+    }
+
+    /* ── Primary value ──────────────────────────────────────────────────── */
+    .kpi-value {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #1a2130;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── Delta / comparison row ─────────────────────────────────────────── */
+    .kpi-comparison-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #555e6a;
+    }
+
+    .kpi-prev-value {
+      font-weight: 500;
+    }
+
+    .kpi-delta {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .kpi-delta.positive { color: #27ae60; }
+    .kpi-delta.negative { color: #e74c3c; }
+    .kpi-delta.neutral  { color: #3498db; }
+
+    /* ── Trend background card ──────────────────────────────────────────── */
+    #kpi-card.trend-up {
+      background: linear-gradient(135deg, #eafaf1 0%, #d5f5e3 100%);
+    }
+    #kpi-card.trend-down {
+      background: linear-gradient(135deg, #fef9f9 0%, #fde8e8 100%);
+    }
+
+    .kpi-trend-arrow {
+      font-size: 28px;
+      margin-top: 6px;
+    }
+
+    .kpi-trend-arrow.up   { color: #27ae60; }
+    .kpi-trend-arrow.down { color: #e74c3c; }
+
+    /* ── Sparkline ──────────────────────────────────────────────────────── */
+    .kpi-sparkline {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .kpi-sparkline svg {
+      display: block;
+    }
+
+    /* ── Hint text (shown when optional encoding is missing) ────────────── */
+    .kpi-hint {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #b0b8c1;
+      font-style: italic;
+    }
+
+    /* ── Error banner ───────────────────────────────────────────────────── */
+    #error {
+      display: none;
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 12px;
+      z-index: 200;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #error:not(:empty) { display: block; }
+  </style>
+</head>
+<body>
+  <div id="kpi-card">
+    <div id="mode-buttons">
+      <button class="mode-btn active" data-mode="simple">Simple</button>
+      <button class="mode-btn" data-mode="comparison">Comparison</button>
+      <button class="mode-btn" data-mode="trend">Trend</button>
+      <button class="mode-btn" data-mode="sparkline">Sparkline</button>
+    </div>
+    <div id="card-body"></div>
+  </div>
+  <div id="error"></div>
+  <script src="chart.js"></script>
+</body>
+</html>
