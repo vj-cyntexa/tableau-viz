@@ -24,3 +24,7 @@ dist/
 
 # OS
 .DS_Store
+
+# Local Tableau project work — workbooks, extracts, data (never commit)
+local-project-work/*
+!local-project-work/.gitkeep

@@ -27,7 +27,10 @@ workbooks/output/      ← generated .twb/.twbx (gitignored)
 extensions/<name>/     ← .html, .js, .trex per extension
 scripts/               ← Python scripts for extract, build, publish
 config/workbook_spec.yml  ← spec file (committed)
+local-project-work/    ← Tableau Desktop workbooks, extracts, and local project files (gitignored)
 ```
+
+`local-project-work/` is for active Tableau Desktop files — `.twb`, `.twbx`, `.hyper`, datasource configs, and any WIP project assets. Everything in this folder is gitignored. Use the `workbooks/templates/` path for committed Jinja2 templates only.
 
 ## Workflow: Building a Workbook
 
