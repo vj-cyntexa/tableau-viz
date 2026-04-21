@@ -69,7 +69,7 @@ async function render(worksheet) {
 // IMPORTANT: Stage order is determined by DATA ROW ORDER in dataTable.data,
 // not by alphabetical sort. Build an ordered Set as we iterate rows.
 function parseData(dataTable, vizSpec) {
-  const marksSpec = vizSpec.marksSpecificationCollection[0];
+  const marksSpec = vizSpec.marksSpecificationCollection?.[0];
   if (!marksSpec) throw new Error('No marks specification found.');
 
   const encodings = marksSpec.encodingCollection;

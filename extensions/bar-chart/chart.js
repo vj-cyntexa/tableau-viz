@@ -98,7 +98,7 @@ async function fetchData(worksheet) {
 //     wideData:  Array<{ x, <colorKey>: number, ... }>  — one obj per x-category
 //   }
 function parseTableauData(dataTable, vizSpec) {
-  const marksSpec = vizSpec.marksSpecificationCollection[0];
+  const marksSpec = vizSpec.marksSpecificationCollection?.[0];
   if (!marksSpec) throw new Error('No marks specification found.');
 
   const encodings = marksSpec.encodingCollection;

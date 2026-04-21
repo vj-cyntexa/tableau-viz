@@ -78,7 +78,7 @@ async function fetchData(worksheet) {
 // ─── Data parsing ─────────────────────────────────────────────────────────────
 // Returns { segments: Map<string, number[]>, allValues: number[], encodingBinCount: number|null }
 function parseTableauData(dataTable, vizSpec) {
-  const marksSpec = vizSpec.marksSpecificationCollection[0];
+  const marksSpec = vizSpec.marksSpecificationCollection?.[0];
   if (!marksSpec) throw new Error('No marks specification found.');
 
   const encodings = marksSpec.encodingCollection;

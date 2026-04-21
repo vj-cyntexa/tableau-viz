@@ -60,7 +60,7 @@ btnFreeze.addEventListener('click', () => {
 
 // ─── Parse ────────────────────────────────────────────────────────────────────
 function parseTableauData(dataTable, vizSpec) {
-  const marksSpec = vizSpec.marksSpecificationCollection[0];
+  const marksSpec = vizSpec.marksSpecificationCollection?.[0];
   if (!marksSpec) throw new Error('No marks specification found.');
 
   const encodings = marksSpec.encodingCollection;
