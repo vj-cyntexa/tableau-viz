@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>RFM scatter plot: Recency vs Frequency bubble chart with Monetary size and segment color for loyalty analytics</description>
-    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" email="support@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/rfm-scatter/index.html</url>

@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>CLV vs Churn Risk quadrant scatter — places customer segments by Customer Lifetime Value (X) and Churn Risk % (Y) with configurable threshold lines and action-oriented quadrant labels</description>
-    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" email="support@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/clv-churn-quadrant/index.html</url>
