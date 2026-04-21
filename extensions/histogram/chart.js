@@ -287,100 +287,99 @@ function drawChart({ segments, allValues, encodingBinCount }) {
       .style('position', 'absolute');
   }
 
-  // ── Render bars for each segment (dodged / side-by-side) ─────────────────
+  // ── Render bars — overlapping with z-order by height per bin ─────────────
   // Remove old bar groups before redrawing (bins change count on every redraw)
   g.selectAll('.seg-bars').remove();
   g.selectAll('.kde-path').remove();
 
-  // For multi-segment, divide each bin's pixel-width into equal sub-slots so
-  // every segment gets its own column and no segment is hidden beneath another.
-  const numSegs  = segKeys.length;
-  const opacity  = isSingleSeg ? 0.75 : 0.80;
-  const GAP      = isSingleSeg ? 2 : 1; // px gap between bars / between dodge slots
+  const FILL_OPACITY = 0.55;
+  const GAP = 2; // px gap on each side of every bar (same for single and multi-segment)
 
+  // Build a flat array of { key, bin, value, color } sorted so that within
+  // each bin the tallest bar comes first (drawn first → back layer in SVG)
+  // and the shortest bar comes last (drawn last → front layer, always visible).
+  const numBins = segBins.get(segKeys[0]).length;
+  const flatBars = [];
+  for (let bi = 0; bi < numBins; bi++) {
+    const entries = segKeys.map(key => {
+      const bin = segBins.get(key)[bi];
+      return { key, bin, value: yValue(bin, segments.get(key)), color: colors(key) };
+    });
+    entries.sort((a, b) => b.value - a.value); // tallest first → back
+    flatBars.push(...entries);
+  }
+
+  const barGroup = g.append('g').attr('class', 'seg-bars');
+
+  barGroup.selectAll('rect')
+    .data(flatBars)
+    .join('rect')
+      .attr('x', d => {
+        const x0 = logX ? Math.max(d.bin.x0, xScale.domain()[0]) : d.bin.x0;
+        return xScale(x0) + GAP;
+      })
+      .attr('width', d => {
+        const x0 = logX ? Math.max(d.bin.x0, xScale.domain()[0]) : d.bin.x0;
+        const x1 = logX ? Math.min(d.bin.x1, xScale.domain()[1]) : d.bin.x1;
+        const binPx = Math.max(0, xScale(x1) - xScale(x0));
+        return Math.max(0, binPx - 2 * GAP);
+      })
+      .attr('y', d => yScale(d.value))
+      .attr('height', d => Math.max(0, h - yScale(d.value)))
+      .attr('fill', d => d.color)
+      .attr('fill-opacity', FILL_OPACITY)
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('fill-opacity', 0.9);
+        const label = isSingleSeg ? '' : `<b style="color:${d.color}">${d.key}</b><br>`;
+        tooltip
+          .style('opacity', 1)
+          .style('left', `${event.offsetX + 14}px`)
+          .style('top',  `${event.offsetY - 10}px`)
+          .html(
+            `${label}` +
+            `Range: ${d3.format(',.1f')(d.bin.x0)} – ${d3.format(',.1f')(d.bin.x1)}<br>` +
+            `${yLabelText}: <b>${yFormat(d.value)}</b>`
+          );
+      })
+      .on('mousemove', function(event) {
+        tooltip
+          .style('left', `${event.offsetX + 14}px`)
+          .style('top',  `${event.offsetY - 10}px`);
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('fill-opacity', FILL_OPACITY);
+        tooltip.style('opacity', 0);
+      });
+
+  // ── KDE overlay per segment (drawn after bars so curves sit on top) ───────
   for (const [key, bins] of segBins) {
+    if (!showKde) break;
     const segVals   = segments.get(key);
     const fillColor = colors(key);
-    const segIdx    = segKeys.indexOf(key); // 0-based position in dodge group
+    const kde = buildKde(xScale.ticks(200), segVals);
+    const lineGen = d3.line()
+      .x(d => xScale(d[0]))
+      .y(d => {
+        if (yMode === 'count') {
+          const binWidth = (xScale.domain()[1] - xScale.domain()[0]) / activeBins;
+          return yScale(d[1] * n * binWidth);
+        } else if (yMode === 'percent') {
+          const binWidth = (xScale.domain()[1] - xScale.domain()[0]) / activeBins;
+          return yScale(d[1] * binWidth);
+        }
+        return yScale(d[1]); // density
+      })
+      .curve(d3.curveBasis)
+      .defined(d => d[0] >= xScale.domain()[0] && d[0] <= xScale.domain()[1]);
 
-    const barGroup = g.append('g')
-      .attr('class', 'seg-bars')
-      .attr('fill', fillColor)
-      .attr('opacity', opacity);
-
-    barGroup.selectAll('rect')
-      .data(bins)
-      .join('rect')
-        .attr('x', d => {
-          const x0 = logX ? Math.max(d.x0, xScale.domain()[0]) : d.x0;
-          const x1 = logX ? Math.min(d.x1, xScale.domain()[1]) : d.x1;
-          const binPx = Math.max(0, xScale(x1) - xScale(x0));
-          if (isSingleSeg) return xScale(x0) + GAP;
-          const slotPx = binPx / numSegs;
-          return xScale(x0) + segIdx * slotPx + GAP;
-        })
-        .attr('width', d => {
-          const x0 = logX ? Math.max(d.x0, xScale.domain()[0]) : d.x0;
-          const x1 = logX ? Math.min(d.x1, xScale.domain()[1]) : d.x1;
-          const binPx = Math.max(0, xScale(x1) - xScale(x0));
-          if (isSingleSeg) return Math.max(0, binPx - 2 * GAP);
-          const slotPx = binPx / numSegs;
-          return Math.max(0, slotPx - 2 * GAP);
-        })
-        .attr('y', d => yScale(yValue(d, segVals)))
-        .attr('height', d => Math.max(0, h - yScale(yValue(d, segVals))))
-        .on('mouseover', function(event, d) {
-          d3.select(this).attr('opacity', 1);
-          const yv = yValue(d, segVals);
-          const label = isSingleSeg ? '' : `<b style="color:${fillColor}">${key}</b><br>`;
-          tooltip
-            .style('opacity', 1)
-            .style('left', `${event.offsetX + 14}px`)
-            .style('top',  `${event.offsetY - 10}px`)
-            .html(
-              `${label}` +
-              `Range: ${d3.format(',.1f')(d.x0)} – ${d3.format(',.1f')(d.x1)}<br>` +
-              `${yLabelText}: <b>${yFormat(yv)}</b>`
-            );
-        })
-        .on('mousemove', function(event) {
-          tooltip
-            .style('left', `${event.offsetX + 14}px`)
-            .style('top',  `${event.offsetY - 10}px`);
-        })
-        .on('mouseout', function() {
-          d3.select(this).attr('opacity', opacity);
-          tooltip.style('opacity', 0);
-        });
-
-    // ── KDE overlay per segment ───────────────────────────────────────────
-    if (showKde) {
-      const kde = buildKde(xScale.ticks(200), segVals);
-      const lineGen = d3.line()
-        .x(d => xScale(d[0]))
-        .y(d => {
-          if (yMode === 'count') {
-            // scale density to counts: multiply by n * binWidth
-            const binWidth = (xScale.domain()[1] - xScale.domain()[0]) / activeBins;
-            return yScale(d[1] * n * binWidth);
-          } else if (yMode === 'percent') {
-            const binWidth = (xScale.domain()[1] - xScale.domain()[0]) / activeBins;
-            return yScale(d[1] * binWidth);
-          }
-          return yScale(d[1]); // density
-        })
-        .curve(d3.curveBasis)
-        .defined(d => d[0] >= xScale.domain()[0] && d[0] <= xScale.domain()[1]);
-
-      g.append('path')
-        .attr('class', 'kde-path')
-        .datum(kde)
-        .attr('fill', 'none')
-        .attr('stroke', fillColor)
-        .attr('stroke-width', 2.5)
-        .attr('opacity', 0.9)
-        .attr('d', lineGen);
-    }
+    g.append('path')
+      .attr('class', 'kde-path')
+      .datum(kde)
+      .attr('fill', 'none')
+      .attr('stroke', fillColor)
+      .attr('stroke-width', 2.5)
+      .attr('opacity', 0.9)
+      .attr('d', lineGen);
   }
 
   // ── Legend (hidden when single segment) ──────────────────────────────────
