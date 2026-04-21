@@ -287,15 +287,21 @@ function drawChart({ segments, allValues, encodingBinCount }) {
       .style('position', 'absolute');
   }
 
-  // ── Render bars for each segment ──────────────────────────────────────────
+  // ── Render bars for each segment (dodged / side-by-side) ─────────────────
   // Remove old bar groups before redrawing (bins change count on every redraw)
   g.selectAll('.seg-bars').remove();
   g.selectAll('.kde-path').remove();
 
+  // For multi-segment, divide each bin's pixel-width into equal sub-slots so
+  // every segment gets its own column and no segment is hidden beneath another.
+  const numSegs  = segKeys.length;
+  const opacity  = isSingleSeg ? 0.75 : 0.80;
+  const GAP      = isSingleSeg ? 2 : 1; // px gap between bars / between dodge slots
+
   for (const [key, bins] of segBins) {
-    const segVals  = segments.get(key);
+    const segVals   = segments.get(key);
     const fillColor = colors(key);
-    const opacity   = isSingleSeg ? 0.75 : 0.5;
+    const segIdx    = segKeys.indexOf(key); // 0-based position in dodge group
 
     const barGroup = g.append('g')
       .attr('class', 'seg-bars')
@@ -307,12 +313,19 @@ function drawChart({ segments, allValues, encodingBinCount }) {
       .join('rect')
         .attr('x', d => {
           const x0 = logX ? Math.max(d.x0, xScale.domain()[0]) : d.x0;
-          return xScale(x0) + 1;
+          const x1 = logX ? Math.min(d.x1, xScale.domain()[1]) : d.x1;
+          const binPx = Math.max(0, xScale(x1) - xScale(x0));
+          if (isSingleSeg) return xScale(x0) + GAP;
+          const slotPx = binPx / numSegs;
+          return xScale(x0) + segIdx * slotPx + GAP;
         })
         .attr('width', d => {
           const x0 = logX ? Math.max(d.x0, xScale.domain()[0]) : d.x0;
           const x1 = logX ? Math.min(d.x1, xScale.domain()[1]) : d.x1;
-          return Math.max(0, xScale(x1) - xScale(x0) - 2);
+          const binPx = Math.max(0, xScale(x1) - xScale(x0));
+          if (isSingleSeg) return Math.max(0, binPx - 2 * GAP);
+          const slotPx = binPx / numSegs;
+          return Math.max(0, slotPx - 2 * GAP);
         })
         .attr('y', d => yScale(yValue(d, segVals)))
         .attr('height', d => Math.max(0, h - yScale(yValue(d, segVals))))
