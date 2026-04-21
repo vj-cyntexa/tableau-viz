@@ -51,7 +51,7 @@ Create `extensions/bar-line-combo/bar-line-combo.trex`:
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Dual-axis combo chart: bars for primary measure, line for secondary measure, built with D3.js</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/bar-line-combo/index.html</url>
@@ -99,7 +99,7 @@ Create `extensions/bar-line-combo/bar-line-combo-local.trex` — identical to ab
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Dual-axis combo chart: bars for primary measure, line for secondary measure, built with D3.js (local dev)</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/bar-line-combo/index.html</url>

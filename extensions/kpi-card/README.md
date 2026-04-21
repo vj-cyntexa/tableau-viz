@@ -72,4 +72,4 @@ If an optional encoding is absent and a mode that requires it is selected, the c
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa

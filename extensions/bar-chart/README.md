@@ -101,4 +101,4 @@ To use the production version in Tableau Desktop:
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa

@@ -52,7 +52,7 @@ Overwrite `extensions/venn-diagram/venn-diagram.trex` with the complete file bel
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Venn diagram showing customer overlap between loyalty tiers, built with D3.js and venn.js. Supports multi-panel grouped view and per-circle color controls.</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/venn-diagram/index.html</url>
@@ -100,7 +100,7 @@ Overwrite `extensions/venn-diagram/venn-diagram-local.trex` with the complete fi
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Venn diagram showing customer overlap between loyalty tiers, built with D3.js and venn.js. Supports multi-panel grouped view and per-circle color controls.</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/venn-diagram/index.html</url>
@@ -1108,7 +1108,7 @@ open http://localhost:8080/extensions/venn-diagram/test.html
 
 ## Author
 
-**Cyntexa** — vishwajeet@cyntexa.com
+**Cyntexa**
 ```
 
 ---

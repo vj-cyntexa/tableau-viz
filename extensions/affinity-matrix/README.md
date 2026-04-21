@@ -98,4 +98,4 @@ Drag each to its respective encoding slot. The extension handles all metric calc
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa

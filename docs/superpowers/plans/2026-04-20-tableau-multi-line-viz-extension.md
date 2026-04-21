@@ -39,7 +39,7 @@ Create `extensions/multi-line-chart/multi-line-chart.trex`:
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Multi-line time-series chart built with D3.js</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/multi-line-chart/index.html</url>
@@ -81,7 +81,7 @@ Create `extensions/multi-line-chart/multi-line-chart-local.trex` — identical t
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Multi-line time-series chart built with D3.js (local dev)</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/multi-line-chart/index.html</url>

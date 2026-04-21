@@ -95,4 +95,4 @@ To use on Tableau Cloud, add the GitHub Pages domain to the site's extension all
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa

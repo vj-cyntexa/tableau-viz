@@ -43,4 +43,4 @@ Load `donut-chart-local.trex` in Tableau Desktop (Extensions → My Extensions).
 
 ## Author
 
-Cyntexa · vishwajeet@cyntexa.com
+Cyntexa

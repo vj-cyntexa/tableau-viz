@@ -52,4 +52,4 @@ open http://localhost:8080/extensions/relationship-table/test.html
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa

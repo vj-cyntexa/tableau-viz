@@ -51,7 +51,7 @@ Create `extensions/relationship-table/relationship-table.trex`:
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Relationship matrix table with heatmap coloring built with D3.js</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/relationship-table/index.html</url>
@@ -93,7 +93,7 @@ Create `extensions/relationship-table/relationship-table-local.trex` — identic
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Relationship matrix table with heatmap coloring built with D3.js (local dev)</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/relationship-table/index.html</url>
@@ -1117,7 +1117,7 @@ open http://localhost:8080/extensions/relationship-table/test.html
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa
 ```
 
 - [x] **Step 5.2: Commit**

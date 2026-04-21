@@ -92,4 +92,4 @@ site's extension allowlist:
 
 ## Author
 
-Cyntexa — vishwajeet@cyntexa.com
+Cyntexa
