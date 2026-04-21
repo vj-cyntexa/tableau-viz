@@ -1,0 +1,234 @@
+================================================================================
+TABLEAU WORKBOOK FIELD VALIDATION REPORT
+Loyalty.twb - Field Existence & Datasource Verification
+================================================================================
+
+OBJECTIVE:
+Validate 5 field names that returned 401 errors via Tableau MCP connector.
+Confirm fields exist in TWB XML and validate their datasource membership.
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+All 5 fields EXIST in the workbook and are properly defined:
+
+1. Loyalty Program Member Status  .......... FOUND     [2 datasources]
+2. Enrollment Channel              .......... FOUND     [2 datasources, 23 worksheet refs]
+3. Redeemed Value                  .......... FOUND     [2 datasources]
+4. Remaining Value                 .......... FOUND     [2 datasources]
+5. Face Value Amount               .......... FOUND     [2 datasources]
+
+VOUCHER VALUE FIELDS CO-EXISTENCE CHECK:
+Redeemed Value + Remaining Value + Face Value Amount
+  All 3 fields in same datasource?  ......... YES
+  Shared datasource ID:             ......... sqlproxy.1r2623d1a8xete1b4fo5u1001yng
+
+================================================================================
+PRIMARY DATASOURCES
+================================================================================
+
+Two main SQL Proxy datasources are used in this workbook:
+
+1. sqlproxy.1r2623d1a8xete1b4fo5u1001yng
+   Caption:      Loyalty Report Data Source
+   Connection:   sqlproxy (Tableau Cloud SQL Proxy)
+   Database:     LoyaltyReportDataSource
+   Server:       prod-apsoutheast-b.online.tableau.com
+   Total Columns: 949
+
+2. sqlproxy.0iu1zjg1usn1w618583nd1p2lua3
+   Caption:      Loyalty Report V2)
+   Connection:   sqlproxy (Tableau Cloud SQL Proxy)
+   Database:     LoyaltyDataSourceII
+   Server:       prod-apsoutheast-b.online.tableau.com
+   Total Columns: 635
+
+Note: Both datasources contain copies of the validated fields (redundancy).
+      Primary datasource used: sqlproxy.1r2623d1a8xete1b4fo5u1001yng
+
+================================================================================
+FIELD-BY-FIELD VALIDATION DETAILS
+================================================================================
+
+[1] LOYALTY PROGRAM MEMBER STATUS
+    ----
+    Field Found:           YES
+    Datasource:            sqlproxy.1r2623d1a8xete1b4fo5u1001yng (primary)
+    Column Name:           [ssot__LoyaltyProgramMemberStatusId__c]
+    Data Type:             string
+    Role:                  dimension
+    Field Type:            raw (not calculated)
+    Formula:               N/A
+    Worksheet References:  0 worksheets
+    
+    Status: Successfully located in TWB XML
+
+[2] ENROLLMENT CHANNEL
+    ----
+    Field Found:           YES
+    Datasource:            sqlproxy.1r2623d1a8xete1b4fo5u1001yng (primary)
+    Column Name:           [ssot__EnrollmentChannelId__c]
+    Data Type:             string
+    Role:                  dimension
+    Field Type:            raw (not calculated)
+    Formula:               N/A
+    Worksheet References:  23 worksheets (highly used)
+    
+    Referenced in:
+      - Enrollment Since Go-Live (Ample Prive)
+      - Enrollment Since Go-Live (LEGO)
+      - Enrollments
+      - Members With No Activity (Ample Prive)
+      - Members With No Activity (LEGO)
+      - Non Transacting Enrollments
+      - Non Transacting Enrollments draft
+      - Sheet 76
+      - Tier Distribution (3 variants)
+      - Total Enrollments Details (2 variants)
+      - Total Enrollments v2
+      - Total Non Transacting Details (2)
+      - Total Non Transacting Enrollments Details
+      - Total Profiles Details
+      - Total Transacting Details (2)
+      - Total Transacting Enrollments Details
+      - Transacting Enrollments
+      - Transacting Enrollments draft
+      - Transacting v/s Non Transaction v/s New v/s Repeat
+      - Enrollment Channel Mix
+    
+    Status: Successfully located in TWB XML; heavily referenced throughout workbook
+
+[3] REDEEMED VALUE
+    ----
+    Field Found:           YES
+    Datasource:            sqlproxy.1r2623d1a8xete1b4fo5u1001yng (primary)
+    Column Name:           [ssot__RedeemedValueAmount__c]
+    Data Type:             real (numeric)
+    Role:                  measure
+    Field Type:            raw (not calculated)
+    Formula:               N/A
+    Worksheet References:  0 worksheets
+    
+    Status: Successfully located in TWB XML
+
+[4] REMAINING VALUE
+    ----
+    Field Found:           YES
+    Datasource:            sqlproxy.1r2623d1a8xete1b4fo5u1001yng (primary)
+    Column Name:           [ssot__RemainingValueAmount__c]
+    Data Type:             real (numeric)
+    Role:                  measure
+    Field Type:            raw (not calculated)
+    Formula:               N/A
+    Worksheet References:  0 worksheets
+    
+    Status: Successfully located in TWB XML
+
+[5] FACE VALUE AMOUNT
+    ----
+    Field Found:           YES
+    Datasource:            sqlproxy.1r2623d1a8xete1b4fo5u1001yng (primary)
+    Column Name:           [ssot__FaceValueAmount__c]
+    Data Type:             real (numeric)
+    Role:                  measure
+    Field Type:            raw (not calculated)
+    Formula:               N/A
+    Worksheet References:  0 worksheets
+    
+    Status: Successfully located in TWB XML
+
+================================================================================
+VOUCHER VALUE FIELDS - DATASOURCE MEMBERSHIP VERIFICATION
+================================================================================
+
+Query: Do Redeemed Value, Remaining Value, and Face Value Amount co-exist in
+       the same datasource and can be used together?
+
+Result: YES - All three fields are in the same datasource
+
+Field                    Datasource                              
+-----------------        ----------------------------------------
+Redeemed Value           sqlproxy.1r2623d1a8xete1b4fo5u1001yng
+Remaining Value          sqlproxy.1r2623d1a8xete1b4fo5u1001yng
+Face Value Amount        sqlproxy.1r2623d1a8xete1b4fo5u1001yng
+
+All three fields:
+  - Belong to the same primary datasource
+  - Are of type "real" (numeric/double-precision float)
+  - Are classified as measures (aggregatable)
+  - Can be used together in calculations, visualizations, or dashboards
+
+Status: CONFIRMED - All three fields can be safely used together
+
+================================================================================
+IMPLICATIONS FOR MCP 401 ERRORS
+================================================================================
+
+The 401 (Unauthorized) errors returned by the Tableau MCP connector when
+querying these fields are NOT due to field definition problems.
+
+Confirmed Facts:
+  ✓ All 5 fields exist in the workbook XML
+  ✓ Fields are correctly defined with proper captions and data types
+  ✓ Fields are sourced from valid SQL Proxy datasources
+  ✓ Voucher value fields share the same datasource (can be combined)
+  ✓ Field names match exactly (case-insensitive)
+  ✓ Column names are properly mapped (Salesforce IDs follow standard pattern)
+
+Likely 401 Cause:
+  The 401 errors are a Tableau Cloud permission/authentication issue, not a
+  field definition issue. Possible causes:
+  
+  1. MCP service account permissions on the specific datasources
+  2. Cross-datasource query restrictions (querying fields from 2 different
+     SQL Proxy datasources in a single MCP call)
+  3. Tableau Cloud site-level query restrictions
+  4. MCP token/PAT expiration or scope limitations
+  5. SQL Proxy layer authentication between Tableau and backend database
+
+Recommendation:
+  Work with Tableau Cloud admin to verify:
+  - MCP service account has read/query permissions on both SQL Proxy datasources
+  - Cross-datasource queries are enabled in Tableau Cloud
+  - SQL Proxy authentication is properly configured
+  - MCP PAT token has sufficient scopes for data queries
+
+================================================================================
+TECHNICAL NOTES
+================================================================================
+
+Field Naming Convention:
+  - All fields use Salesforce custom object syntax (__c suffix)
+  - Prefix "ssot__" indicates Single Source of Truth data model
+  - Examples: ssot__LoyaltyProgramMemberStatusId__c,
+             ssot__RedeemedValueAmount__c
+
+Data Types:
+  - Dimensions: string (Loyalty Program Member Status, Enrollment Channel)
+  - Measures: real (Redeemed Value, Remaining Value, Face Value Amount)
+
+Field Classification:
+  - All 5 fields are RAW FIELDS (directly from datasource, not calculated)
+  - No custom formulas or Tableau calculations
+  - Fields are directly mappable to database columns
+
+Worksheet Usage Pattern:
+  - Enrollment Channel is heavily referenced (23 worksheets)
+  - Loyalty Program Member Status is defined but not actively referenced (0 worksheets)
+  - Voucher value fields (3) show no direct worksheet references
+    (Likely used in hidden worksheets, story points, or extension data layers)
+
+================================================================================
+VALIDATION COMPLETE
+================================================================================
+
+File Analyzed:  /tmp/loyalty_sankey_extract/Loyalty.twb
+Validation Date: 2026-04-21
+Script Used:    XML ElementTree parser (Python 3)
+Datasources:    3 main sources (2x SQL Proxy, 1x Parameters)
+Total Worksheets: 200+ (with many duplicates for filtering)
+
+All field validation queries completed successfully.
+All 5 fields confirmed to exist in workbook definition.
+

@@ -10,6 +10,7 @@ data/extracts/*.hyper
 
 # Generated output
 workbooks/output/
+scripts/output/
 
 # Python
 __pycache__/
