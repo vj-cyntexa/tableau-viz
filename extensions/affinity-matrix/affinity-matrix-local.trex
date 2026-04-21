@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Product affinity / co-occurrence matrix with metric toggle (Count / Lift / Support) and diverging color scale, built with D3.js (local dev)</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/affinity-matrix/index.html</url>
@@ -13,32 +13,32 @@
     <encoding id="row">
       <display-name resource-id="row_label">Row Product</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="col">
       <display-name resource-id="col_label">Column Product</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="count">
       <display-name resource-id="count_label">Co-purchase Count</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="row_total">
       <display-name resource-id="row_total_label">Row Product Total Purchases</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="col_total">
       <display-name resource-id="col_total_label">Column Product Total Purchases</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="grand_total">
       <display-name resource-id="grand_total_label">Grand Total Transactions (optional)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>

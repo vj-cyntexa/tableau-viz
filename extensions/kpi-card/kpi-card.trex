@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>KPI card with Simple, Comparison, Trend, and Sparkline display modes</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/kpi-card/index.html</url>
@@ -13,27 +13,27 @@
     <encoding id="value">
       <display-name resource-id="value_label">Value (Primary Measure)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="label">
       <display-name resource-id="label_label">Label (Card Title)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="comparison">
       <display-name resource-id="comparison_label">Comparison (Secondary Measure)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="history">
       <display-name resource-id="history_label">History (Sparkline Measure)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="date">
       <display-name resource-id="date_label">Date (Sparkline X Axis)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>

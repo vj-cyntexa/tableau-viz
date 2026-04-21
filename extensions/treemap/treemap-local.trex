@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Treemap — local dev</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/treemap/index.html</url>
@@ -13,22 +13,22 @@
     <encoding id="label">
       <display-name resource-id="label_label">Leaf Label</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="parent">
       <display-name resource-id="parent_label">Parent Category (optional)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="size">
       <display-name resource-id="size_label">Size (area measure)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="color">
       <display-name resource-id="color_label">Color (measure or dimension, optional)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>

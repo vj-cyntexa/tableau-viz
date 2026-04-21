@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>CLV vs Churn Risk quadrant scatter — places customer segments by Customer Lifetime Value (X) and Churn Risk % (Y) with configurable threshold lines and action-oriented quadrant labels</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/clv-churn-quadrant/index.html</url>
@@ -13,27 +13,27 @@
     <encoding id="clv">
       <display-name resource-id="clv_label">Customer Lifetime Value (X axis)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="churn_risk">
       <display-name resource-id="churn_risk_label">Churn Risk 0.0–1.0 (Y axis)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="segment">
       <display-name resource-id="segment_label">Segment (color)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="size">
       <display-name resource-id="size_label">Customer Count (bubble size, optional)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="label">
       <display-name resource-id="label_label">Label text on bubble (optional)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>

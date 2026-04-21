@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Funnel chart (local dev)</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/funnel-chart/index.html</url>
@@ -13,17 +13,17 @@
     <encoding id="stage">
       <display-name resource-id="stage_label">Stage (ordered)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="value">
       <display-name resource-id="value_label">Volume</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="color">
       <display-name resource-id="color_label">Segment (optional stacked color)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>

@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Dual-axis combo chart: bars for primary measure, line for secondary measure, built with D3.js</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>https://vj-cyntexa.github.io/tableau-viz/extensions/bar-line-combo/index.html</url>
@@ -13,22 +13,22 @@
     <encoding id="x">
       <display-name resource-id="x_label">X Axis (Date or Category)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="bar">
       <display-name resource-id="bar_label">Bar Measure (left Y axis)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="line">
       <display-name resource-id="line_label">Line Measure (right Y axis)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="color">
       <display-name resource-id="color_label">Group (stacked bars)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>

@@ -4,7 +4,7 @@
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Survival curve — local dev</description>
-    <author name="Cyntexa" email="vishwajeet@cyntexa.com" organization="Cyntexa" website="https://cyntexa.com"/>
+    <author name="Cyntexa" organization="Cyntexa" website="https://cyntexa.com"/>
     <min-api-version>1.1</min-api-version>
     <source-location>
       <url>http://localhost:8080/extensions/survival-curve/index.html</url>
@@ -13,27 +13,27 @@
     <encoding id="period">
       <display-name resource-id="period_label">Period (time index 0, 1, 2, …)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="survival">
       <display-name resource-id="survival_label">Survival Probability (0.0–1.0)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="1" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="segment">
       <display-name resource-id="segment_label">Segment (optional — multiple lines)</display-name>
       <role-spec><role-type>discrete-dimension</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="ci_lower">
       <display-name resource-id="ci_lower_label">CI Lower Bound (optional)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
     <encoding id="ci_upper">
       <display-name resource-id="ci_upper_label">CI Upper Bound (optional)</display-name>
       <role-spec><role-type>continuous-measure</role-type></role-spec>
-      <fields min-count="0" max-count="1"/>
+      <fields max-count="1"/>
     </encoding>
   </worksheet-extension>
   <resources>
