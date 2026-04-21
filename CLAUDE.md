@@ -6,8 +6,6 @@ Build Tableau workbooks and Viz Extensions locally using AI generation, then pub
 
 ## Tableau Cloud Connection
 
-- **Server:** https://prod-apsoutheast-b.online.tableau.com/
-- **Site:** ample
 - **MCP server:** `@tableau/mcp-server` — configured in `.mcp.json` (never commit this file)
 - Use MCP tools to inspect existing workbooks, datasources, views, and Pulse metrics before building anything new.
 
